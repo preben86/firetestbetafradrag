@@ -466,6 +466,7 @@
                         </div>
                     </div>
                     <button onclick="toggleExtraColumns()" class="toggle-button" id="toggleColumnsButton">Aktiver ekstra kolonner</button>
+                    <button onclick="toggleAskOptimization()" class="toggle-button" id="toggleAskButton">Aktiver ASK-optimalisering</button>
                     <div class="slider-container">
                         <div class="slider-label">Boligverdi (kr)</div>
                         <div class="slider-input-container">
@@ -569,6 +570,7 @@
                             <li><strong>Inflasjonsjustering:</strong> Boligverdi og personfradrag er ikke inflasjonsjustert over tid i kalkulasjonen. Boligverdi vil mest sannsynlig øke, og dermed øke formue & formueskatt.</li>
                             <li><strong>Privat pensjonsoppsparing:</strong> Pensjonsoppsparingen vokser med forventet avkastning pensjon frem til pensjonsalder (mellom 62 og 75), hvoretter netto uttak starter og fortsetter til minst 80 år. Uttak skattlegges med 22%.</li>
                             <li><strong>Folketrygd pensjon:</strong> Forventet pensjon fra folketrygd utbetales fra valgt pensjonsalder for folketrygd og reduserer netto uttak fra fondet. Beløpet er justert med forventet årlig økning frem til uttak og med inflasjon etterpå.</li>
+                            <li><strong>ASK-optimalisering:</strong> Når aktivert, simulerer bruk av flere ASK-kontoer for å utnytte personfradraget hvert år ved å konvertere gevinst til skattefritt innskudd uten netto effekt på beholdningen, noe som reduserer fremtidig skatt og forlenger varigheten.</li>
                             <li><strong>Andre forbehold:</strong> Denne kalkulatoren er ingen fasit og må bare brukes som veiledende informasjon.</li>
                         </ul>
                         <h2>Kalkulasjoner forklart</h2>
@@ -662,6 +664,7 @@
         let showPension = false;
         let showInheritance = false;
         let showPensionReturnAfterWithdrawal = false;
+        let showAskOptimization = false;
 
         const sliders = {
             grossValue: document.getElementById('grossValue'),
@@ -875,6 +878,14 @@
             debouncedUpdate();
         }
 
+        function toggleAskOptimization() {
+            showAskOptimization = !showAskOptimization;
+            const toggleButton = document.getElementById('toggleAskButton');
+            toggleButton.innerText = showAskOptimization ? 'Deaktiver ASK-optimalisering' : 'Aktiver ASK-optimalisering';
+            toggleButton.classList.toggle('active', showAskOptimization);
+            debouncedUpdate();
+        }
+
         function toggleInfo() {
             showInfo = !showInfo;
             document.getElementById('infoSection').classList.toggle('hidden', !showInfo);
@@ -1041,6 +1052,16 @@
                     taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
                     displayedTaxFreeDeposit = taxFreeDeposit;
                     portfolioValue = Math.round(portfolioValue * (1 + params.returnRate) - uttakNy - previousWealthTax);
+
+                    if (showAskOptimization) {
+                        const adjustmentFactor = 1.72;
+                        const maxFreeGain = Math.round(params.personalAllowance / adjustmentFactor);
+                        const availableGain = Math.max(0, portfolioValue - taxFreeDeposit);
+                        const added = Math.min(availableGain, maxFreeGain);
+                        taxFreeDeposit += added;
+                        displayedTaxFreeDeposit += added;
+                    }
+
                     if (portfolioValue <= 0 && taxFreeDeposit <= 0) return year;
                 }
 
@@ -1191,6 +1212,16 @@
                     taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
                     displayedTaxFreeDeposit = taxFreeDeposit;
                     portfolioValue = Math.round(portfolioValue * (1 + params.returnRate) - uttakNy - previousWealthTax);
+
+                    if (showAskOptimization) {
+                        const adjustmentFactor = 1.72;
+                        const maxFreeGain = Math.round(params.personalAllowance / adjustmentFactor);
+                        const availableGain = Math.max(0, portfolioValue - taxFreeDeposit);
+                        const added = Math.min(availableGain, maxFreeGain);
+                        taxFreeDeposit += added;
+                        displayedTaxFreeDeposit += added;
+                    }
+
                     if (portfolioValue <= 0 && taxFreeDeposit <= 0) {
                         duration = year;
                         break;
