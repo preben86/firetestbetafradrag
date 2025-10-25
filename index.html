@@ -1,1 +1,1282 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRE Uttakskalkulator Norge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a1a1a;
+        }
+        .calculator {
+            padding: 40px;
+            background: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+            width: 2200px;
+            min-height: 1100px;
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+        }
+        .flex-container {
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            max-height: calc(100vh - 160px);
+            overflow: hidden;
+        }
+        .input-section {
+            flex: 1;
+            max-width: 500px;
+            overflow-y: auto;
+        }
+        .results-section {
+            flex: 2;
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
+        }
+        .message-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .message {
+            background-color: #dbe6f0;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 500;
+            flex: 1;
+        }
+        .description {
+            font-size: 1.4rem;
+            color: #333333;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .slider-container {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .slider-label {
+            font-size: 20px;
+            font-weight: 500;
+            color: #000000;
+            margin-bottom: 5px;
+            text-align: left;
+            width: 100%;
+        }
+        .slider-subtext {
+            font-size: 16px;
+            color: #666666;
+            margin-top: 5px;
+            text-align: left;
+            width: 100%;
+        }
+        .slider-input-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .slider {
+            width: 300px;
+            appearance: none;
+            height: 15px;
+            background: #dbe6f0;
+            outline: none;
+            border-radius: 3px;
+        }
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 35px;
+            height: 35px;
+            background: #2f4a5e;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 8px #2f4a5e;
+        }
+        .slider::-moz-range-thumb {
+            width: 35px;
+            height: 35px;
+            background: #2f4a5e;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .value {
+            margin-left: 10px;
+            padding: 10px 10px;
+            background: #dbe6f0;
+            border-radius: 5px;
+            font-size: 24px;
+            color: #000000;
+        }
+        .value input {
+            width: 162px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 24px;
+            outline: none;
+            color: #000000;
+        }
+        .toggle-button {
+            width: 100%;
+            padding: 15px;
+            background: #2f4a5e;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .toggle-button:hover {
+            background: #3b5b74;
+        }
+        .toggle-button.active {
+            background: #2a7e4b;
+        }
+        .info-button {
+            width: 100%;
+            padding: 15px;
+            background: #2f4a5e;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .info-button:hover {
+            background: #3b5b74;
+        }
+        .results-table table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        .results-table td {
+            padding: 3px;
+            font-size: 20px;
+            word-break: break-word;
+            min-width: 0;
+            text-align: center;
+        }
+        .results-table th {
+            padding: 5px 7px;
+            font-size: 18px;
+            font-weight: 500;
+            min-width: 0;
+            color: #000000;
+        }
+        .table-scroll {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+        .info-content {
+            font-size: 1.2rem;
+            color: #333333;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+        .info-content h2 {
+            font-size: 1.8rem;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #2f4a5e;
+        }
+        .info-content ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        .info-content li {
+            margin-bottom: 10px;
+        }
+        .calculation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .calculation-table th, .calculation-table td {
+            border: 1px solid #cccccc;
+            padding: 10px;
+            text-align: left;
+            font-size: 1.1rem;
+        }
+        .calculation-table th {
+            background-color: #dbe6f0;
+            font-weight: 500;
+        }
+        .hidden {
+            display: none;
+        }
+        .extra-column {
+            display: none;
+        }
+        .extra-column.show {
+            display: table-cell;
+        }
+        .pension-column {
+            display: none;
+        }
+        .pension-column.show {
+            display: table-cell;
+        }
+        .retirement-year-tjenestepensjon {
+            font-weight: bold;
+            background-color: #e6f0fa;
+        }
+        .retirement-year-folketrygd {
+            font-weight: bold;
+            background-color: #e0f0e0;
+        }
+        .inheritance-year {
+            font-weight: bold;
+            background-color: #f0e6fa;
+        }
+        @media (max-width: 768px) {
+            .calculator {
+                padding: 20px;
+                width: 100%;
+                min-height: auto;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            .flex-container {
+                flex-direction: column;
+                gap: 20px;
+                max-height: none;
+                overflow: visible;
+            }
+            .input-section {
+                max-width: 100%;
+                overflow-y: visible;
+            }
+            .results-section {
+                position: static;
+                width: 100%;
+            }
+            .message-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .message {
+                font-size: 1.2rem;
+                padding: 12px;
+            }
+            .description {
+                font-size: 1.2rem;
+            }
+            .slider {
+                width: 100%;
+                max-width: 260px;
+            }
+            .value input {
+                width: 120px;
+                font-size: 20px;
+            }
+            .slider-label {
+                font-size: 20px;
+            }
+            .slider-subtext {
+                font-size: 14px;
+            }
+            .toggle-button, .info-button {
+                font-size: 18px;
+                padding: 12px;
+            }
+            .results-table th {
+                font-size: 14px;
+                padding: 3px;
+            }
+            .results-table td {
+                font-size: 16px;
+                padding: 2px;
+            }
+            .table-scroll {
+                max-height: 400px;
+                overflow-x: auto;
+            }
+            .results-table table {
+                min-width: 500px;
+            }
+            .info-content {
+                font-size: 1rem;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+            .info-content h2 {
+                font-size: 1.5rem;
+            }
+            .calculation-table th, .calculation-table td {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6 text-center">FIRE Uttakskalkulator Norge</h1>
+        <div class="flex-container">
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="description">
+                    Kalkulatoren viser hvor lenge en fondsbeholdning kan bestå basert på netto uttrekk og er basert på norske forhold. Endre på parametre for å se hvilke utslag dette vil gi for varigheten på fondsbeholdningen. Legg inn boligverdi under avanserte innstillinger for en mer nøyaktig utregning av formueskatt.
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">Fondsverdi (kr)</div>
+                    <div class="slider-input-container">
+                        <input type="range" min="0" max="15000000" value="6000000" step="10000" class="slider" id="grossValue">
+                        <div class="value"><input type="text" id="grossValue-value" value="6 000 000" oninput="validateInput(this)" onblur="updateSlider('grossValue', this)" onkeypress="if(event.key === 'Enter') updateSlider('grossValue', this)"></div>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">Skattefritt innskudd (kr)</div>
+                    <div class="slider-input-container">
+                        <input type="range" min="0" max="15000000" value="3000000" step="10000" class="slider" id="taxFreeDeposit">
+                        <div class="value"><input type="text" id="taxFreeDeposit-value" value="3 000 000" oninput="validateInput(this)" onblur="updateSlider('taxFreeDeposit', this)" onkeypress="if(event.key === 'Enter') updateSlider('taxFreeDeposit', this)"></div>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">Månedlig netto uttak (kr)</div>
+                    <div class="slider-input-container">
+                        <input type="range" min="0" max="100000" value="25000" step="1000" class="slider" id="monthlyNetWithdrawal">
+                        <div class="value"><input type="text" id="monthlyNetWithdrawal-value" value="25 000" oninput="validateInput(this)" onblur="updateSlider('monthlyNetWithdrawal', this)" onkeypress="if(event.key === 'Enter') updateSlider('monthlyNetWithdrawal', this)"></div>
+                    </div>
+                    <div class="slider-subtext" id="monthlyNetWithdrawal-subtext"></div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">Årlig uttaksrate (%)</div>
+                    <div class="slider-input-container">
+                        <input type="range" min="0" max="20" value="5" step="0.1" class="slider" id="withdrawalRate">
+                        <div class="value"><input type="text" id="withdrawalRate-value" value="5,0" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('withdrawalRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('withdrawalRate', this)"></div>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">Forventet avkastning (%)</div>
+                    <div class="slider-input-container">
+                        <input type="range" min="0" max="20" value="8" step="0.1" class="slider" id="returnRate">
+                        <div class="value"><input type="text" id="returnRate-value" value="8" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('returnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('returnRate', this)"></div>
+                    </div>
+                </div>
+                <button onclick="toggleAdvancedSettings()" class="toggle-button">Vis/Skjul avanserte innstillinger</button>
+                <div id="advancedSettings" class="hidden">
+                    <div class="slider-container">
+                        <div class="slider-label">Porteføljeuttak startår</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="2025" max="2050" value="2025" step="1" class="slider" id="portfolioWithdrawalYear">
+                            <div class="value"><input type="text" id="portfolioWithdrawalYear-value" value="2025" oninput="validateInput(this)" onblur="updateSlider('portfolioWithdrawalYear', this)" onkeypress="if(event.key === 'Enter') updateSlider('portfolioWithdrawalYear', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Fødselsår</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="1900" max="2025" value="1986" step="1" class="slider" id="birthYear">
+                            <div class="value"><input type="text" id="birthYear-value" value="1986" oninput="validateInput(this)" onblur="updateSlider('birthYear', this)" onkeypress="if(event.key === 'Enter') updateSlider('birthYear', this)"></div>
+                        </div>
+                    </div>
+                    <button onclick="togglePensionSettings()" class="toggle-button" id="togglePensionButton">Aktiver pensjon</button>
+                    <div id="pensionSettings" class="hidden">
+                        <div class="slider-container">
+                            <div class="slider-label">Pensjonsalder - folketrygd</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="62" max="75" value="69" step="1" class="slider" id="folketrygdAge">
+                                <div class="value"><input type="text" id="folketrygdAge-value" value="69" oninput="validateInput(this)" onblur="updateSlider('folketrygdAge', this)" onkeypress="if(event.key === 'Enter') updateSlider('folketrygdAge', this)"></div>
+                            </div>
+                            <div class="slider-subtext" id="folketrygdAge-subtext"></div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Forventet pensjon fra folketrygd (kr/år)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="500000" value="242418" step="1000" class="slider" id="folketrygdPension">
+                                <div class="value"><input type="text" id="folketrygdPension-value" value="242 418" oninput="validateInput(this)" onblur="updateSlider('folketrygdPension', this)" onkeypress="if(event.key === 'Enter') updateSlider('folketrygdPension', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Skatt på folketrygd (%)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="22" value="22" step="0.1" class="slider" id="folketrygdTaxRate">
+                                <div class="value"><input type="text" id="folketrygdTaxRate-value" value="22" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('folketrygdTaxRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('folketrygdTaxRate', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Folketrygd forventet årlig økning (%)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="10" value="3.9" step="0.1" class="slider" id="folketrygdIncrease">
+                                <div class="value"><input type="text" id="folketrygdIncrease-value" value="3,9" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('folketrygdIncrease', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('folketrygdIncrease', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Pensjonsalder - tjenestepensjon/IPS</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="62" max="75" value="62" step="1" class="slider" id="retirementAge">
+                                <div class="value"><input type="text" id="retirementAge-value" value="62" oninput="validateInput(this)" onblur="updateSlider('retirementAge', this)" onkeypress="if(event.key === 'Enter') updateSlider('retirementAge', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Privat pensjonsoppsparing (kr)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="5000000" value="800000" step="10000" class="slider" id="privatePension">
+                                <div class="value"><input type="text" id="privatePension-value" value="800 000" oninput="validateInput(this)" onblur="updateSlider('privatePension', this)" onkeypress="if(event.key === 'Enter') updateSlider('privatePension', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Forventet avkastning pensjon (%)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="20" value="5.75" step="0.1" class="slider" id="pensionReturnRate">
+                                <div class="value"><input type="text" id="pensionReturnRate-value" value="5,75" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('pensionReturnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('pensionReturnRate', this)"></div>
+                            </div>
+                        </div>
+                        <button onclick="togglePensionReturnAfterWithdrawal()" class="toggle-button" id="togglePensionReturnAfterButton">Aktiver avkastning etter uttak</button>
+                    </div>
+                    <button onclick="toggleInheritanceSettings()" class="toggle-button" id="toggleInheritanceButton">Aktiver arv</button>
+                    <div id="inheritanceSettings" class="hidden">
+                        <div class="slider-subtext">Forventede fremtidige arvemottak basert på antatt arv</div>
+                        <div class="slider-container">
+                            <div class="slider-label">Arveår</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="2025" max="2075" value="2050" step="1" class="slider" id="inheritanceYear">
+                                <div class="value"><input type="text" id="inheritanceYear-value" value="2050" oninput="validateInput(this)" onblur="updateSlider('inheritanceYear', this)" onkeypress="if(event.key === 'Enter') updateSlider('inheritanceYear', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Skattefritt innskudd fra arv (kr)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="10000000" value="0" step="10000" class="slider" id="inheritanceTaxFree">
+                                <div class="value"><input type="text" id="inheritanceTaxFree-value" value="0" oninput="validateInput(this)" onblur="updateSlider('inheritanceTaxFree', this)" onkeypress="if(event.key === 'Enter') updateSlider('inheritanceTaxFree', this)"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="toggleExtraColumns()" class="toggle-button" id="toggleColumnsButton">Aktiver ekstra kolonner</button>
+                    <div class="slider-container">
+                        <div class="slider-label">Boligverdi (kr)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="20000000" value="0" step="10000" class="slider" id="propertyValue">
+                            <div class="value"><input type="text" id="propertyValue-value" value="0" oninput="validateInput(this)" onblur="updateSlider('propertyValue', this)" onkeypress="if(event.key === 'Enter') updateSlider('propertyValue', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Formueskatt (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="5" value="1" step="0.1" class="slider" id="wealthTaxRate">
+                            <div class="value"><input type="text" id="wealthTaxRate-value" value="1" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('wealthTaxRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('wealthTaxRate', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Gjeld (kr)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="20000000" value="0" step="10000" class="slider" id="debt">
+                            <div class="value"><input type="text" id="debt-value" value="0" oninput="validateInput(this)" onblur="updateSlider('debt', this)" onkeypress="if(event.key === 'Enter') updateSlider('debt', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Inflasjon (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="10" value="2.5" step="0.1" class="slider" id="inflationRate">
+                            <div class="value"><input type="text" id="inflationRate-value" value="2,5" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('inflationRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('inflationRate', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Tidshorisont (år)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="50" value="50" step="1" class="slider" id="years">
+                            <div class="value"><input type="text" id="years-value" value="50" oninput="validateInput(this)" onblur="updateSlider('years', this)" onkeypress="if(event.key === 'Enter') updateSlider('years', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Skjermingsrente (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="5" value="2.4" step="0.1" class="slider" id="shieldingRate">
+                            <div class="value"><input type="text" id="shieldingRate-value" value="2,4" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('shieldingRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('shieldingRate', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Skatt på uttak aksje (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="50" value="37.84" step="0.01" class="slider" id="stockWithdrawalTax">
+                            <div class="value"><input type="text" id="stockWithdrawalTax-value" value="37,84" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('stockWithdrawalTax', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('stockWithdrawalTax', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Verdsettelsesrabatt fond (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="50" value="20" step="0.1" class="slider" id="fundDiscount">
+                            <div class="value"><input type="text" id="fundDiscount-value" value="20" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('fundDiscount', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('fundDiscount', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Verdsettelsesrabatt bolig (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="100" value="75" step="0.1" class="slider" id="propertyDiscount">
+                            <div class="value"><input type="text" id="propertyDiscount-value" value="75" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('propertyDiscount', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('propertyDiscount', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Formueskatt bunnfradrag (kr)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="5000000" value="1760000" step="10000" class="slider" id="wealthTaxThreshold">
+                            <div class="value"><input type="text" id="wealthTaxThreshold-value" value="1 760 000" oninput="validateInput(this)" onblur="updateSlider('wealthTaxThreshold', this)" onkeypress="if(event.key === 'Enter') updateSlider('wealthTaxThreshold', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Bunnfradrag årlig økning (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="10" value="2" step="0.1" class="slider" id="thresholdIncrease">
+                            <div class="value"><input type="text" id="thresholdIncrease-value" value="2" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('thresholdIncrease', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('thresholdIncrease', this)"></div>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Personfradrag (kr)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="200000" value="108550" step="1000" class="slider" id="personalAllowance">
+                            <div class="value"><input type="text" id="personalAllowance-value" value="108 550" oninput="validateInput(this)" onblur="updateSlider('personalAllowance', this)" onkeypress="if(event.key === 'Enter') updateSlider('personalAllowance', this)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Results Section -->
+            <div class="results-section">
+                <div id="results-container" class="mt-6">
+                    <button onclick="toggleInfo()" class="info-button" id="infoButton">Vis informasjon om kalkulatoren</button>
+                    <div id="infoSection" class="info-content hidden">
+                        <h2>Om FIRE Uttakskalkulator</h2>
+                        <p>Denne kalkulatoren hjelper deg å estimere hvor lenge en fondsbeholdning kan vare basert på månedlige netto uttak, med hensyn til norske skatteregler og inflasjon. Uttakene er inflasjonsjustert, noe som betyr at det månedlige uttaket øker årlig for å opprettholde kjøpekraften.</p>
+                        <h2>Hvordan bruke kalkulatoren</h2>
+                        <ul>
+                            <li><strong>Grunnleggende innstillinger:</strong> Juster Fondsverdi, Skattefritt innskudd, Månedlig netto uttak, Årlig uttaksrate og Forventet avkastning ved hjelp av skyveknappene eller skriv inn verdier direkte.</li>
+                            <li><strong>Avanserte innstillinger:</strong> Klikk på "Vis/Skjul avanserte innstillinger" for å tilpasse parametere som Porteføljeuttak startår, Boligverdi, Gjeld, Formueskatt, Inflasjon, og mer for en mer presis beregning.</li>
+                            <li><strong>Resultater:</strong> Tabellen viser årlig utvikling av fondsverdien, pensjonsbeholdning, uttak, skatter og skattefritt innskudd. Meldinger øverst indikerer varighet, initialt uttak og maksimalt uttak for 30 år.</li>
+                            <li><strong>Ekstra kolonner:</strong> Under avanserte innstillinger kan du vise flere detaljer i tabellen, som uttaksskatt og personfradrag.</li>
+                            <li><strong>Personfradrag:</strong> Personfradraget kan nedjusteres nederst under avanserte innstillinger for å simulere annen skattbar inntekt.</li>
+                            <li><strong>Inflasjonsjustering:</strong> Boligverdi og personfradrag er ikke inflasjonsjustert over tid i kalkulasjonen. Boligverdi vil mest sannsynlig øke, og dermed øke formue & formueskatt.</li>
+                            <li><strong>Privat pensjonsoppsparing:</strong> Pensjonsoppsparingen vokser med forventet avkastning pensjon frem til pensjonsalder (mellom 62 og 75), hvoretter netto uttak starter og fortsetter til minst 80 år. Uttak skattlegges med 22%.</li>
+                            <li><strong>Folketrygd pensjon:</strong> Forventet pensjon fra folketrygd utbetales fra valgt pensjonsalder for folketrygd og reduserer netto uttak fra fondet. Beløpet er justert med forventet årlig økning frem til uttak og med inflasjon etterpå.</li>
+                            <li><strong>Andre forbehold:</strong> Denne kalkulatoren er ingen fasit og må bare brukes som veiledende informasjon.</li>
+                        </ul>
+                        <h2>Kalkulasjoner forklart</h2>
+                        <p>Nedenfor er en oversikt over hvordan de ulike verdiene i kalkulatoren beregnes:</p>
+                        <table class="calculation-table">
+                            <tr>
+                                <th>Felt</th>
+                                <th>Beskrivelse</th>
+                                <th>Kalkulasjon</th>
+                            </tr>
+                            <tr>
+                                <td>Fondsverdi</td>
+                                <td>Verdien av fondet ved starten av hvert år.</td>
+                                <td>Fondsverdi(t) = Fondsverdi(t-1) × (1 + Forventet avkastning) - Brutto uttak - Formueskatt(t-1)</td>
+                            </tr>
+                            <tr>
+                                <td>Skattefritt innskudd</td>
+                                <td>Beløp som kan tas ut skattefritt, justert for skjermingsfradrag.</td>
+                                <td>Skattefritt innskudd(t) = Skattefritt innskudd(t-1) - Uttak fra skattefritt + Skjermingsfradrag<br>Skjermingsfradrag = Skattefritt innskudd(t-1) × Skjermingsrente</td>
+                            </tr>
+                            <tr>
+                                <td>Alder</td>
+                                <td>Brukerens alder i hvert år basert på fødselsår og årstall i tabellen.</td>
+                                <td>Alder(t) = (Porteføljeuttak startår + t) - Fødselsår</td>
+                            </tr>
+                            <tr>
+                                <td>Netto uttak</td>
+                                <td>Ønsket månedlig uttak, inflasjonsjustert, justert for pensjonsuttak.</td>
+                                <td>Netto uttak(t) = (Initialt månedlig uttak × (1 + Inflasjon)<sup>t</sup> × 12) - Pensjonsuttak(tjenestepensjon) - Pensjonsuttak(folketrygd)</td>
+                            </tr>
+                            <tr>
+                                <td>Brutto uttak</td>
+                                <td>Totalt uttak, inkludert skatt for å oppnå netto uttak, eller lik netto uttak hvis personfradrag eliminerer skatten.</td>
+                                <td>Brutto uttak = Netto uttak hvis personfradrag dekker all skattepliktig gevinst, ellers Skattefritt uttak + Skattepliktig uttak<br>Hvor Skattepliktig uttak = (Netto uttak - Skattefritt uttak - Skattesparing) / (1 - Skatt på uttak aksje)</td>
+                            </tr>
+                            <tr>
+                                <td>Formueskatt</td>
+                                <td>Skatt på formue over bunnfradraget, brukt i neste års beregning.</td>
+                                <td>Formueskatt = (TaxablePortfolioValue + TaxablePropertyValue - Gjeld - Bunnfradrag) × Formueskatt<br>Hvor TaxablePortfolioValue = Fondsverdi × (1 - Verdsettelsesrabatt fond)<br>TaxablePropertyValue = Boligverdi × (1 - Verdsettelsesrabatt bolig)<br>Bunnfradrag(t) = Initialt bunnfradrag × (1 + Bunnfradrag årlig økning)<sup>t</sup></td>
+                            </tr>
+                            <tr>
+                                <td>Uttaksskatt</td>
+                                <td>Skatt på uttak fra skattepliktig del av fondet.</td>
+                                <td>Uttaksskatt = Brutto uttak - Netto uttak</td>
+                            </tr>
+                            <tr>
+                                <td>Personfradrag</td>
+                                <td>Fradrag som reduserer skattepliktig uttak.</td>
+                                <td>Personfradrag = min(Personfradrag, Skattepliktig gevinst × Justering)<br>Skattesparing = Personfradrag × (Skatt på uttak aksje / Justering)</td>
+                            </tr>
+                            <tr>
+                                <td>Pensjonsuttak (tjenestepensjon, netto)</td>
+                                <td>Nettobeløp trukket fra privat pensjonsoppsparing etter 22% skatt.</td>
+                                <td>Før pensjonsalder: 0<br>Ved pensjonsalder: Brutto uttak = Pensjon / max(80 - Pensjonsalder, 10)<br>Netto uttak = Brutto uttak × (1 - 0.22)</td>
+                            </tr>
+                            <tr>
+                                <td>Pensjonsbeholdning (tjenestepensjon)</td>
+                                <td>Gjenværende saldo i privat pensjonsoppsparing.</td>
+                                <td>Før pensjonsalder: Pensjon(t) = Pensjon(t-1) × (1 + Forventet avkastning pensjon)<br>Ved pensjonsalder: Pensjon(t) = Pensjon(t-1) - Brutto uttak</td>
+                            </tr>
+                            <tr>
+                                <td>Pensjonsuttak (folketrygd, netto)</td>
+                                <td>Nettobeløp fra forventet folketrygd pensjon etter 22% skatt.</td>
+                                <td>Før pensjonsalder: 0<br>Ved pensjonsalder: Netto uttak = Forventet folketrygd × (1 - 0.22), justert med folketrygd årlig økning frem til uttak og inflasjon etterpå</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="tableSection">
+                        <div class="message-container">
+                            <div id="durationMessage" class="message"></div>
+                            <div id="annualWithdrawal" class="message"></div>
+                            <div id="maxWithdrawal" class="message"></div>
+                        </div>
+                        <div class="results-table">
+                            <div class="table-scroll">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead id="resultsTableHead"></thead>
+                                    <tbody id="resultsTable" class="bg-white divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        let showExtraColumns = false;
+        let showInfo = false;
+        let showPension = false;
+        let showInheritance = false;
+        let showPensionReturnAfterWithdrawal = false;
+
+        const sliders = {
+            grossValue: document.getElementById('grossValue'),
+            taxFreeDeposit: document.getElementById('taxFreeDeposit'),
+            monthlyNetWithdrawal: document.getElementById('monthlyNetWithdrawal'),
+            withdrawalRate: document.getElementById('withdrawalRate'),
+            returnRate: document.getElementById('returnRate'),
+            inflationRate: document.getElementById('inflationRate'),
+            wealthTaxRate: document.getElementById('wealthTaxRate'),
+            shieldingRate: document.getElementById('shieldingRate'),
+            years: document.getElementById('years'),
+            stockWithdrawalTax: document.getElementById('stockWithdrawalTax'),
+            fundDiscount: document.getElementById('fundDiscount'),
+            propertyValue: document.getElementById('propertyValue'),
+            debt: document.getElementById('debt'),
+            propertyDiscount: document.getElementById('propertyDiscount'),
+            wealthTaxThreshold: document.getElementById('wealthTaxThreshold'),
+            thresholdIncrease: document.getElementById('thresholdIncrease'),
+            personalAllowance: document.getElementById('personalAllowance'),
+            portfolioWithdrawalYear: document.getElementById('portfolioWithdrawalYear'),
+            birthYear: document.getElementById('birthYear'),
+            retirementAge: document.getElementById('retirementAge'),
+            privatePension: document.getElementById('privatePension'),
+            pensionReturnRate: document.getElementById('pensionReturnRate'),
+            folketrygdAge: document.getElementById('folketrygdAge'),
+            folketrygdPension: document.getElementById('folketrygdPension'),
+            folketrygdTaxRate: document.getElementById('folketrygdTaxRate'),
+            folketrygdIncrease: document.getElementById('folketrygdIncrease'),
+            inheritanceYear: document.getElementById('inheritanceYear'),
+            inheritanceTaxFree: document.getElementById('inheritanceTaxFree')
+        };
+        const values = {
+            grossValue: document.getElementById('grossValue-value'),
+            taxFreeDeposit: document.getElementById('taxFreeDeposit-value'),
+            monthlyNetWithdrawal: document.getElementById('monthlyNetWithdrawal-value'),
+            withdrawalRate: document.getElementById('withdrawalRate-value'),
+            returnRate: document.getElementById('returnRate-value'),
+            inflationRate: document.getElementById('inflationRate-value'),
+            wealthTaxRate: document.getElementById('wealthTaxRate-value'),
+            shieldingRate: document.getElementById('shieldingRate-value'),
+            years: document.getElementById('years-value'),
+            stockWithdrawalTax: document.getElementById('stockWithdrawalTax-value'),
+            fundDiscount: document.getElementById('fundDiscount-value'),
+            propertyValue: document.getElementById('propertyValue-value'),
+            debt: document.getElementById('debt-value'),
+            propertyDiscount: document.getElementById('propertyDiscount-value'),
+            wealthTaxThreshold: document.getElementById('wealthTaxThreshold-value'),
+            thresholdIncrease: document.getElementById('thresholdIncrease-value'),
+            personalAllowance: document.getElementById('personalAllowance-value'),
+            portfolioWithdrawalYear: document.getElementById('portfolioWithdrawalYear-value'),
+            birthYear: document.getElementById('birthYear-value'),
+            retirementAge: document.getElementById('retirementAge-value'),
+            privatePension: document.getElementById('privatePension-value'),
+            pensionReturnRate: document.getElementById('pensionReturnRate-value'),
+            folketrygdAge: document.getElementById('folketrygdAge-value'),
+            folketrygdPension: document.getElementById('folketrygdPension-value'),
+            folketrygdTaxRate: document.getElementById('folketrygdTaxRate-value'),
+            folketrygdIncrease: document.getElementById('folketrygdIncrease-value'),
+            inheritanceYear: document.getElementById('inheritanceYear-value'),
+            inheritanceTaxFree: document.getElementById('inheritanceTaxFree-value')
+        };
+
+        // Debounce function to limit frequent updates
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Attach debounced event listeners
+        const debouncedUpdate = debounce(() => {
+            updateMonthlyWithdrawalSubtext();
+            updateFolketrygdSubtext();
+            calculateFIRE();
+        }, 100);
+
+        Object.keys(sliders).forEach(id => {
+            sliders[id].addEventListener('input', () => {
+                updateValue(id);
+                if (id === 'monthlyNetWithdrawal') {
+                    updateWithdrawalRateInfo();
+                } else if (id === 'withdrawalRate' || id === 'grossValue') {
+                    updateMonthlyWithdrawal();
+                }
+                debouncedUpdate();
+            });
+        });
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
+        function parseNumber(str) {
+            const cleanedStr = str.replace(/\s/g, '').replace(',', '.');
+            const value = parseFloat(cleanedStr);
+            return isNaN(value) ? 0 : value;
+        }
+
+        function updateValue(id) {
+            const slider = sliders[id];
+            const valueInput = values[id];
+            const value = parseFloat(slider.value);
+            valueInput.value = formatValue(value, id);
+        }
+
+        function updateSlider(id, input) {
+            const slider = sliders[id];
+            let value = input.value.replace(/\s/g, '');
+            if (value === '') value = '0';
+            value = parseInt(value, 10);
+            if (isNaN(value)) value = 0;
+            const absoluteMax = 1000000000;
+            if (value > absoluteMax) value = absoluteMax;
+            const sliderMax = parseFloat(slider.max);
+            slider.value = Math.min(value, sliderMax);
+            input.value = formatValue(value, id);
+            if (id === 'monthlyNetWithdrawal') {
+                updateWithdrawalRateInfo();
+            } else if (id === 'withdrawalRate' || id === 'grossValue') {
+                updateMonthlyWithdrawal();
+            }
+            debouncedUpdate();
+        }
+
+        function updateSliderDecimal(id, input) {
+            const slider = sliders[id];
+            let value = input.value.replace(/[^0-9,]/g, '').replace(',', '.');
+            if (value === '') value = '0';
+            value = parseFloat(value);
+            if (isNaN(value)) value = 0;
+            const absoluteMax = id === 'years' ? 100 : 100;
+            if (value > absoluteMax) value = absoluteMax;
+            const sliderMax = parseFloat(slider.max);
+            slider.value = Math.min(value, sliderMax);
+            input.value = formatValue(value, id);
+            if (id === 'monthlyNetWithdrawal') {
+                updateWithdrawalRateInfo();
+            } else if (id === 'withdrawalRate' || id === 'grossValue') {
+                updateMonthlyWithdrawal();
+            }
+            debouncedUpdate();
+        }
+
+        function validateInput(input) {
+            input.value = input.value.replace(/[^0-9 ]/g, '');
+        }
+
+        function validateInputDecimal(input) {
+            input.value = input.value.replace(/[^0-9,]/g, '');
+        }
+
+        function formatValue(value, id) {
+            if (['grossValue', 'taxFreeDeposit', 'monthlyNetWithdrawal', 'propertyValue', 'debt', 'wealthTaxThreshold', 'personalAllowance', 'privatePension', 'portfolioWithdrawalYear', 'birthYear', 'retirementAge', 'folketrygdAge', 'folketrygdPension', 'inheritanceYear', 'inheritanceTaxFree'].includes(id)) {
+                return formatNumber(Math.round(value));
+            } else if (['withdrawalRate', 'returnRate', 'inflationRate', 'wealthTaxRate', 'shieldingRate', 'stockWithdrawalTax', 'fundDiscount', 'propertyDiscount', 'thresholdIncrease', 'pensionReturnRate', 'folketrygdIncrease', 'folketrygdTaxRate'].includes(id)) {
+                return value.toFixed(2).replace('.', ',');
+            }
+            return value.toString();
+        }
+
+        function toggleAdvancedSettings() {
+            document.getElementById('advancedSettings').classList.toggle('hidden');
+            debouncedUpdate();
+        }
+
+        function toggleExtraColumns() {
+            showExtraColumns = !showExtraColumns;
+            document.querySelectorAll('.extra-column').forEach(col => {
+                col.classList.toggle('show', showExtraColumns);
+            });
+            const toggleButton = document.getElementById('toggleColumnsButton');
+            toggleButton.innerText = showExtraColumns ? 'Deaktiver ekstra kolonner' : 'Aktiver ekstra kolonner';
+            toggleButton.classList.toggle('active', showExtraColumns);
+            debouncedUpdate();
+        }
+
+        function togglePensionSettings() {
+            showPension = !showPension;
+            const pensionSettings = document.getElementById('pensionSettings');
+            const toggleButton = document.getElementById('togglePensionButton');
+            pensionSettings.classList.toggle('hidden', !showPension);
+            toggleButton.innerText = showPension ? 'Deaktiver pensjon' : 'Aktiver pensjon';
+            toggleButton.classList.toggle('active', showPension);
+            document.querySelectorAll('.pension-column').forEach(col => {
+                col.classList.toggle('show', showPension);
+            });
+            debouncedUpdate();
+        }
+
+        function togglePensionReturnAfterWithdrawal() {
+            showPensionReturnAfterWithdrawal = !showPensionReturnAfterWithdrawal;
+            const toggleButton = document.getElementById('togglePensionReturnAfterButton');
+            toggleButton.innerText = showPensionReturnAfterWithdrawal ? 'Deaktiver avkastning etter uttak' : 'Aktiver avkastning etter uttak';
+            toggleButton.classList.toggle('active', showPensionReturnAfterWithdrawal);
+            debouncedUpdate();
+        }
+
+        function toggleInheritanceSettings() {
+            showInheritance = !showInheritance;
+            const inheritanceSettings = document.getElementById('inheritanceSettings');
+            const toggleButton = document.getElementById('toggleInheritanceButton');
+            inheritanceSettings.classList.toggle('hidden', !showInheritance);
+            toggleButton.innerText = showInheritance ? 'Deaktiver arv' : 'Aktiver arv';
+            toggleButton.classList.toggle('active', showInheritance);
+            debouncedUpdate();
+        }
+
+        function toggleInfo() {
+            showInfo = !showInfo;
+            document.getElementById('infoSection').classList.toggle('hidden', !showInfo);
+            document.getElementById('tableSection').classList.toggle('hidden', showInfo);
+            document.getElementById('infoButton').innerText = showInfo ? 'Vis resultattabell' : 'Vis informasjon om kalkulatoren';
+        }
+
+        function updateWithdrawalRateInfo() {
+            const monthlyNetWithdrawal = parseNumber(values.monthlyNetWithdrawal.value);
+            const grossValue = parseNumber(values.grossValue.value) || 1;
+            const withdrawalRate = (monthlyNetWithdrawal * 12 / grossValue) * 100;
+            values.withdrawalRate.value = withdrawalRate.toFixed(1).replace('.', ',');
+            sliders.withdrawalRate.value = Math.min(withdrawalRate, parseFloat(sliders.withdrawalRate.max));
+        }
+
+        function updateMonthlyWithdrawal() {
+            const withdrawalRate = parseNumber(values.withdrawalRate.value);
+            const grossValue = parseNumber(values.grossValue.value) || 1;
+            const monthlyNetWithdrawal = (grossValue * withdrawalRate) / 1200;
+            values.monthlyNetWithdrawal.value = formatNumber(Math.round(monthlyNetWithdrawal));
+            sliders.monthlyNetWithdrawal.value = Math.min(Math.round(monthlyNetWithdrawal), parseFloat(sliders.monthlyNetWithdrawal.max));
+            updateWithdrawalRateInfo();
+        }
+
+        function updateMonthlyWithdrawalSubtext() {
+            const monthlyNetWithdrawal = parseNumber(values.monthlyNetWithdrawal.value);
+            const inflationRate = parseNumber(values.inflationRate.value) / 100;
+            const portfolioWithdrawalYear = parseNumber(values.portfolioWithdrawalYear.value);
+            const currentYear = new Date().getFullYear();
+            const yearsUntilWithdrawal = portfolioWithdrawalYear - currentYear;
+            document.getElementById('monthlyNetWithdrawal-subtext').innerText = yearsUntilWithdrawal > 0 && monthlyNetWithdrawal > 0
+                ? `Dette uttaket tilsvarer ${formatNumber(Math.round(monthlyNetWithdrawal / Math.pow(1 + inflationRate, yearsUntilWithdrawal)))} i dagens verdi (justert for inflasjon)`
+                : '';
+        }
+
+        function updateFolketrygdSubtext() {
+            const birthYear = parseNumber(values.birthYear.value);
+            const yearsDifference = birthYear - 1963;
+            const totalMonthsIncrease = yearsDifference * 1;
+            const earliestAge = 67 + Math.floor(totalMonthsIncrease / 12) + (totalMonthsIncrease % 12) / 12;
+            const earliestAgeYears = Math.floor(earliestAge);
+            const earliestAgeMonths = Math.round((earliestAge - earliestAgeYears) * 12);
+            document.getElementById('folketrygdAge-subtext').innerText = `Basert på din alder kan du tidligst ta ut pensjon fra ${earliestAgeYears} år og ${earliestAgeMonths} måneder`;
+        }
+
+        function calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, stockWithdrawalTax, personalAllowance) {
+            if (netWithdrawal <= 0) return { grossWithdrawal: 0, withdrawalTax: 0, taxSavings: 0, utilizedAllowance: 0 };
+            if (taxFreeDeposit >= netWithdrawal) return { grossWithdrawal: netWithdrawal, withdrawalTax: 0, taxSavings: 0, utilizedAllowance: 0 };
+
+            const effectiveTaxRate = stockWithdrawalTax / 100;
+            const adjustmentFactor = 1.72;
+            const incomeTaxRate = effectiveTaxRate / adjustmentFactor;
+            const taxableWithdrawal = netWithdrawal - taxFreeDeposit;
+            const adjustedTaxableGain = taxFreeDeposit === 0 ? netWithdrawal * adjustmentFactor : taxableWithdrawal / (1 - effectiveTaxRate) * adjustmentFactor;
+            const utilizedAllowance = Math.min(personalAllowance, adjustedTaxableGain);
+            const taxSavings = utilizedAllowance * incomeTaxRate;
+
+            if (utilizedAllowance >= adjustedTaxableGain) {
+                return { grossWithdrawal: netWithdrawal, withdrawalTax: 0, taxSavings: taxableWithdrawal, utilizedAllowance };
+            }
+
+            const grossTaxable = Math.max(0, Math.round((taxableWithdrawal - taxSavings) / (1 - effectiveTaxRate)));
+            const grossWithdrawal = taxFreeDeposit + grossTaxable;
+            const withdrawalTax = grossTaxable > 0 ? Math.round(grossWithdrawal - netWithdrawal) : 0;
+
+            return { grossWithdrawal, withdrawalTax, taxSavings, utilizedAllowance };
+        }
+
+        function simulatePortfolio(initialMonthlyNetWithdrawal, maxYears) {
+            const params = {
+                taxFreeDeposit: parseNumber(values.taxFreeDeposit.value),
+                grossValue: parseNumber(values.grossValue.value),
+                returnRate: parseNumber(values.returnRate.value) / 100,
+                pensionReturnRate: parseNumber(values.pensionReturnRate.value) / 100,
+                inflationRate: parseNumber(values.inflationRate.value) / 100,
+                wealthTaxRate: parseNumber(values.wealthTaxRate.value) / 100,
+                shieldingRate: parseNumber(values.shieldingRate.value) / 100,
+                stockWithdrawalTax: parseNumber(values.stockWithdrawalTax.value),
+                fundDiscount: parseNumber(values.fundDiscount.value) / 100,
+                propertyValue: parseNumber(values.propertyValue.value),
+                debt: parseNumber(values.debt.value),
+                propertyDiscount: parseNumber(values.propertyDiscount.value) / 100,
+                wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
+                thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
+                personalAllowance: parseNumber(values.personalAllowance.value),
+                portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
+                birthYear: parseNumber(values.birthYear.value),
+                retirementAge: parseNumber(values.retirementAge.value),
+                folketrygdAge: parseNumber(values.folketrygdAge.value),
+                privatePension: parseNumber(values.privatePension.value),
+                folketrygdPension: parseNumber(values.folketrygdPension.value),
+                folketrygdTaxRate: parseNumber(values.folketrygdTaxRate.value),
+                folketrygdIncrease: parseNumber(values.folketrygdIncrease.value) / 100,
+                inheritanceYear: parseNumber(values.inheritanceYear.value),
+                inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
+            };
+
+            const currentYear = 2025;
+
+            let { taxFreeDeposit, grossValue, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
+            let initialTaxFreeDeposit = taxFreeDeposit;
+            let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
+            let displayedTaxFreeDeposit = initialTaxFreeDeposit;
+            let portfolioValue = grossValue;
+            let pensionValue = privatePension;
+            let pensionWithdrawalPeriod = Math.max(80 - retirementAge, 10);
+            const retirementYear = birthYear + retirementAge;
+            const folketrygdYear = birthYear + folketrygdAge;
+            let netWithdrawal = initialMonthlyNetWithdrawal * 12;
+            let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
+            let previousGrossWithdrawal = 0;
+            let previousSurplus = 0;
+
+            for (let year = 0; year <= maxYears; year++) {
+                const inflationFactor = Math.pow(1 + params.inflationRate, year);
+                let currentNetWithdrawal = Math.round(netWithdrawal * inflationFactor);
+                let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
+
+                if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
+                    const pensionBruttoWithdrawal = Math.round(pensionValue / pensionWithdrawalPeriod);
+                    pensionNetWithdrawal = Math.round(pensionBruttoWithdrawal * 0.78);
+                    pensionValue = Math.max(0, pensionValue - pensionBruttoWithdrawal);
+                    if (showPensionReturnAfterWithdrawal) {
+                        pensionValue = Math.round(pensionValue * (1 + params.pensionReturnRate));
+                    }
+                    pensionWithdrawalPeriod = Math.max(pensionWithdrawalPeriod - 1, 0);
+                } else {
+                    pensionValue = Math.round(pensionValue * (1 + params.pensionReturnRate));
+                }
+
+                if (showPension && (portfolioWithdrawalYear + year) >= folketrygdYear) {
+                    const pensionYear = portfolioWithdrawalYear + year;
+                    const yearsFromNow = pensionYear - currentYear;
+                    const adjustedPension = params.folketrygdPension * Math.pow(1 + folketrygdIncrease, yearsFromNow);
+                    folketrygdNetWithdrawal = Math.round(adjustedPension * (1 - params.folketrygdTaxRate / 100));
+                }
+
+                const required = Math.round(netWithdrawal * inflationFactor);
+                const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
+                currentNetWithdrawal = Math.max(0, required - pensions);
+                const surplus = Math.max(0, pensions - required);
+
+                const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(currentNetWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
+                const withdrawalFromTaxFree = Math.min(taxFreeDeposit, currentNetWithdrawal);
+                const uttakNy = previousGrossWithdrawal;
+
+                if (year === 0) {
+                    portfolioValue = grossValue;
+                    displayedTaxFreeDeposit = initialTaxFreeDeposit; // Show original input
+                    taxFreeDeposit = Math.max(0, taxFreeDeposit - withdrawalFromTaxFree);
+                } else {
+                    if (showInheritance && (portfolioWithdrawalYear + year) === inheritanceYear) {
+                        portfolioValue += inheritanceTaxFree;
+                        taxFreeDeposit += inheritanceTaxFree;
+                        displayedTaxFreeDeposit = taxFreeDeposit;
+                    } else {
+                        taxFreeDeposit = Math.max(0, previousDisplayedTaxFreeDeposit - previousWithdrawalFromTaxFree);
+                        displayedTaxFreeDeposit = taxFreeDeposit;
+                    }
+                    portfolioValue += previousSurplus;
+                    taxFreeDeposit += previousSurplus;
+                    displayedTaxFreeDeposit = taxFreeDeposit;
+                    let shieldingIncrease = previousDisplayedTaxFreeDeposit > 10000 ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0;
+                    taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
+                    displayedTaxFreeDeposit = taxFreeDeposit;
+                    portfolioValue = Math.round(portfolioValue * (1 + params.returnRate) - uttakNy - previousWealthTax);
+                    if (portfolioValue <= 0 && taxFreeDeposit <= 0) return year;
+                }
+
+                const taxablePortfolioValue = Math.round(portfolioValue * (1 - params.fundDiscount));
+                const taxablePropertyValue = Math.round(params.propertyValue * (1 - params.propertyDiscount));
+                const currentThreshold = Math.round(params.wealthTaxThreshold * Math.pow(1 + params.thresholdIncrease, year));
+                const wealthTax = Math.round(Math.max(0, taxablePortfolioValue + taxablePropertyValue - params.debt - currentThreshold) * params.wealthTaxRate);
+                const annualReturn = Math.round(portfolioValue * params.returnRate);
+
+                previousDisplayedTaxFreeDeposit = displayedTaxFreeDeposit;
+                previousNetWithdrawal = currentNetWithdrawal;
+                previousWithdrawalTax = withdrawalTax;
+                previousWealthTax = wealthTax;
+                previousWithdrawalFromTaxFree = withdrawalFromTaxFree;
+                previousGrossWithdrawal = grossWithdrawal;
+                previousSurplus = surplus;
+            }
+            return maxYears + 1;
+        }
+
+        function calculateMaxMonthlyWithdrawal(targetYears) {
+            const grossValue = parseNumber(values.grossValue.value);
+            let low = 0, high = grossValue / 12, maxMonthlyWithdrawal = 0;
+            const epsilon = 1000, maxIterations = 100;
+            let iterations = 0;
+
+            while (low <= high && iterations < maxIterations) {
+                const mid = (low + high) / 2;
+                const result = simulatePortfolio(mid, targetYears);
+
+                if (result >= targetYears) {
+                    low = mid + 1;
+                    maxMonthlyWithdrawal = mid;
+                } else {
+                    high = mid - 1;
+                }
+                iterations++;
+            }
+            return Math.round(maxMonthlyWithdrawal);
+        }
+
+        function calculateFIRE() {
+            const params = {
+                taxFreeDeposit: parseNumber(values.taxFreeDeposit.value),
+                grossValue: parseNumber(values.grossValue.value),
+                monthlyNetWithdrawal: parseNumber(values.monthlyNetWithdrawal.value),
+                returnRate: parseNumber(values.returnRate.value) / 100,
+                pensionReturnRate: parseNumber(values.pensionReturnRate.value) / 100,
+                inflationRate: parseNumber(values.inflationRate.value) / 100,
+                wealthTaxRate: parseNumber(values.wealthTaxRate.value) / 100,
+                shieldingRate: parseNumber(values.shieldingRate.value) / 100,
+                years: Math.round(parseNumber(values.years.value)),
+                stockWithdrawalTax: parseNumber(values.stockWithdrawalTax.value),
+                fundDiscount: parseNumber(values.fundDiscount.value) / 100,
+                propertyValue: parseNumber(values.propertyValue.value),
+                debt: parseNumber(values.debt.value),
+                propertyDiscount: parseNumber(values.propertyDiscount.value) / 100,
+                wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
+                thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
+                personalAllowance: parseNumber(values.personalAllowance.value),
+                portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
+                birthYear: parseNumber(values.birthYear.value),
+                retirementAge: parseNumber(values.retirementAge.value),
+                folketrygdAge: parseNumber(values.folketrygdAge.value),
+                privatePension: parseNumber(values.privatePension.value),
+                folketrygdPension: parseNumber(values.folketrygdPension.value),
+                folketrygdTaxRate: parseNumber(values.folketrygdTaxRate.value),
+                folketrygdIncrease: parseNumber(values.folketrygdIncrease.value) / 100,
+                inheritanceYear: parseNumber(values.inheritanceYear.value),
+                inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
+            };
+
+            const currentYear = 2025;
+
+            let { taxFreeDeposit, grossValue, monthlyNetWithdrawal, years, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
+            let initialTaxFreeDeposit = taxFreeDeposit;
+            let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
+            let displayedTaxFreeDeposit = initialTaxFreeDeposit;
+            let portfolioValue = grossValue;
+            let pensionValue = privatePension;
+            let pensionWithdrawalPeriod = Math.max(80 - retirementAge, 10);
+            const retirementYear = birthYear + retirementAge;
+            const folketrygdYear = birthYear + folketrygdAge;
+            let initialNetWithdrawal = monthlyNetWithdrawal * 12;
+            let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
+            let previousGrossWithdrawal = 0;
+            let previousSurplus = 0;
+            let duration = 0;
+            const tableRows = [];
+
+            for (let year = 0; year <= years; year++) {
+                const inflationFactor = Math.pow(1 + params.inflationRate, year);
+                let netWithdrawal = Math.round(initialNetWithdrawal * inflationFactor);
+                let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
+
+                if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
+                    const pensionBruttoWithdrawal = Math.round(pensionValue / pensionWithdrawalPeriod);
+                    pensionNetWithdrawal = Math.round(pensionBruttoWithdrawal * 0.78);
+                    pensionValue = Math.max(0, pensionValue - pensionBruttoWithdrawal);
+                    if (showPensionReturnAfterWithdrawal) {
+                        pensionValue = Math.round(pensionValue * (1 + params.pensionReturnRate));
+                    }
+                    pensionWithdrawalPeriod = Math.max(pensionWithdrawalPeriod - 1, 0);
+                } else {
+                    pensionValue = Math.round(pensionValue * (1 + params.pensionReturnRate));
+                }
+
+                if (showPension && (portfolioWithdrawalYear + year) >= folketrygdYear) {
+                    const pensionYear = portfolioWithdrawalYear + year;
+                    const yearsFromNow = pensionYear - currentYear;
+                    const adjustedPension = params.folketrygdPension * Math.pow(1 + folketrygdIncrease, yearsFromNow);
+                    folketrygdNetWithdrawal = Math.round(adjustedPension * (1 - params.folketrygdTaxRate / 100));
+                }
+
+                let deflatedMonthlyPension = 0;
+                if (showPension) {
+                    const totalAnnualPension = pensionNetWithdrawal + folketrygdNetWithdrawal;
+                    const monthlyPension = totalAnnualPension / 12;
+                    deflatedMonthlyPension = Math.round(monthlyPension / inflationFactor);
+                }
+
+                const required = Math.round(initialNetWithdrawal * inflationFactor);
+                const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
+                netWithdrawal = Math.max(0, required - pensions);
+                const surplus = Math.max(0, pensions - required);
+
+                const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
+                const withdrawalFromTaxFree = Math.min(taxFreeDeposit, netWithdrawal);
+                const uttakNy = previousGrossWithdrawal;
+
+                if (year === 0) {
+                    portfolioValue = grossValue;
+                    displayedTaxFreeDeposit = initialTaxFreeDeposit; // Show original input
+                    taxFreeDeposit = Math.max(0, taxFreeDeposit - withdrawalFromTaxFree);
+                } else {
+                    if (showInheritance && (portfolioWithdrawalYear + year) === inheritanceYear) {
+                        portfolioValue += inheritanceTaxFree;
+                        taxFreeDeposit += inheritanceTaxFree;
+                        displayedTaxFreeDeposit = taxFreeDeposit;
+                    } else {
+                        taxFreeDeposit = Math.max(0, previousDisplayedTaxFreeDeposit - previousWithdrawalFromTaxFree);
+                        displayedTaxFreeDeposit = taxFreeDeposit;
+                    }
+                    portfolioValue += previousSurplus;
+                    taxFreeDeposit += previousSurplus;
+                    displayedTaxFreeDeposit = taxFreeDeposit;
+                    let shieldingIncrease = previousDisplayedTaxFreeDeposit > 10000 ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0;
+                    taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
+                    displayedTaxFreeDeposit = taxFreeDeposit;
+                    portfolioValue = Math.round(portfolioValue * (1 + params.returnRate) - uttakNy - previousWealthTax);
+                    if (portfolioValue <= 0 && taxFreeDeposit <= 0) {
+                        duration = year;
+                        break;
+                    }
+                }
+
+                const taxablePortfolioValue = Math.round(portfolioValue * (1 - params.fundDiscount));
+                const taxablePropertyValue = Math.round(params.propertyValue * (1 - params.propertyDiscount));
+                const currentThreshold = Math.round(params.wealthTaxThreshold * Math.pow(1 + params.thresholdIncrease, year));
+                const wealthTax = Math.round(Math.max(0, taxablePortfolioValue + taxablePropertyValue - params.debt - currentThreshold) * params.wealthTaxRate);
+                const annualReturn = Math.round(portfolioValue * params.returnRate);
+
+                const isRetirementYearTjenestepensjon = showPension && (portfolioWithdrawalYear + year) === retirementYear;
+                const isRetirementYearFolketrygd = showPension && (portfolioWithdrawalYear + year) === folketrygdYear;
+                const isInheritanceYear = showInheritance && (portfolioWithdrawalYear + year) === inheritanceYear;
+                let rowClass = '';
+                if (isInheritanceYear) {
+                    rowClass = 'inheritance-year';
+                } else if (isRetirementYearTjenestepensjon) {
+                    rowClass = 'retirement-year-tjenestepensjon';
+                } else if (isRetirementYearFolketrygd) {
+                    rowClass = 'retirement-year-folketrygd';
+                }
+
+                tableRows.push(`
+                    <tr class="${rowClass}">
+                        <td class="px-6 py-4 text-base">${year}</td>
+                        <td class="px-6 py-4 text-base">${portfolioWithdrawalYear + year}</td>
+                        <td class="px-6 py-4 text-base">${(portfolioWithdrawalYear + year) - birthYear}</td>
+                        <td class="px-6 py-4 text-base">${formatNumber(Math.round(portfolioValue))}</td>
+                        <td class="px-6 py-4 text-base">${formatNumber(Math.round(displayedTaxFreeDeposit))}</td>
+                        <td class="px-6 py-4 text-base">${formatNumber(annualReturn)}</td>
+                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(year > 0 ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0)}</td>
+                        <td class="px-6 py-4 text-base">${formatNumber(grossWithdrawal)}</td>
+                        <td class="px-6 py-4 text-base">${formatNumber(netWithdrawal)}</td>
+                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(withdrawalTax)}</td>
+                        <td class="px-6 py-4 text-base">${formatNumber(wealthTax)}</td>
+                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(utilizedAllowance)}</td>
+                        <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(pensionNetWithdrawal)}</td>
+                        <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(pensionValue)}</td>
+                        <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(folketrygdNetWithdrawal)}</td>
+                        <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(deflatedMonthlyPension)}</td>
+                    </tr>
+                `);
+
+                previousDisplayedTaxFreeDeposit = displayedTaxFreeDeposit;
+                previousNetWithdrawal = netWithdrawal;
+                previousWithdrawalTax = withdrawalTax;
+                previousWealthTax = wealthTax;
+                previousWithdrawalFromTaxFree = withdrawalFromTaxFree;
+                previousGrossWithdrawal = grossWithdrawal;
+                previousSurplus = surplus;
+            }
+
+            document.getElementById('resultsTableHead').innerHTML = `<tr>
+                <th class="px-6 py-3 text-base font-medium">År</th>
+                <th class="px-6 py-3 text-base font-medium">Årstall</th>
+                <th class="px-6 py-3 text-base font-medium">Alder</th>
+                <th class="px-6 py-3 text-base font-medium">Fondsverdi</th>
+                <th class="px-6 py-3 text-base font-medium">Skattefritt innskudd</th>
+                <th class="px-6 py-3 text-base font-medium">Avkastning</th>
+                <th class="px-6 py-3 text-base font-medium extra-column ${showExtraColumns ? 'show' : ''}">Skjermingsfradrag</th>
+                <th class="px-6 py-3 text-base font-medium">Brutto uttak</th>
+                <th class="px-6 py-3 text-base font-medium">Netto uttak</th>
+                <th class="px-6 py-3 text-base font-medium extra-column ${showExtraColumns ? 'show' : ''}">Uttaksskatt</th>
+                <th class="px-6 py-3 text-base font-medium">Formueskatt</th>
+                <th class="px-6 py-3 text-base font-medium extra-column ${showExtraColumns ? 'show' : ''}">Personfradrag</th>
+                <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Tjenestepensjon (netto, kr)</th>
+                <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Tjenestepensjon beholdning (kr)</th>
+                <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Folketrygd pensjon (netto, kr)</th>
+                <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Månedlig pensjon (netto, dagens verdi, kr)</th>
+            </tr>`;
+            document.getElementById('resultsTable').innerHTML = tableRows.join('');
+            document.getElementById('durationMessage').innerText = duration > 0 ? `Fondsverdien vil vare i ${duration} år med dette uttaket!` : `Fondsverdien vil vare i mer enn ${years} år med dette uttaket!`;
+            document.getElementById('annualWithdrawal').innerText = `Initialt årlig uttak (netto):\n ${formatNumber(Math.round(initialNetWithdrawal))} per år / ${formatNumber(Math.round(initialNetWithdrawal / 12))} per måned`;
+            const max30 = calculateMaxMonthlyWithdrawal(30);
+            const max50 = calculateMaxMonthlyWithdrawal(50);
+            document.getElementById('maxWithdrawal').innerText = `Maksimalt netto uttak for 30 år / 50 år:\n ${formatNumber(max30)} per måned / ${formatNumber(max50)} per måned`;
+            document.getElementById('results-container').classList.remove('hidden');
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            updateWithdrawalRateInfo();
+            updateMonthlyWithdrawalSubtext();
+            updateFolketrygdSubtext();
+            calculateFIRE();
+        });
+    </script>
+</body>
+</html>
