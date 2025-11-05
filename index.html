@@ -251,6 +251,10 @@
             font-weight: bold;
             background-color: #f0e6fa;
         }
+        .low-withdrawal-period {
+            font-weight: bold;
+            background-color: #fff3cd;
+        }
         @media (max-width: 768px) {
             .calculator {
                 padding: 20px;
@@ -467,6 +471,25 @@
                     </div>
                     <button onclick="toggleExtraColumns()" class="toggle-button" id="toggleColumnsButton">Aktiver ekstra kolonner</button>
                     <button onclick="toggleAskOptimization()" class="toggle-button" id="toggleAskButton">Aktiver ASK-optimalisering</button>
+                    <button onclick="toggleVariableWithdrawal()" class="toggle-button" id="toggleVariableButton">Aktiver variabel uttak</button>
+                    <div id="variableWithdrawalSettings" class="hidden">
+                        <div class="slider-subtext">Definer et lavere uttak de første årene for å maksimere avkastning, og beregn automatisk høyere uttak etterpå for å vare resten av perioden.</div>
+                        <div class="slider-container">
+                            <div class="slider-label">Antall år med lavt uttak</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="50" value="10" step="1" class="slider" id="lowWithdrawalYears">
+                                <div class="value"><input type="text" id="lowWithdrawalYears-value" value="10" oninput="validateInput(this)" onblur="updateSlider('lowWithdrawalYears', this)" onkeypress="if(event.key === 'Enter') updateSlider('lowWithdrawalYears', this)"></div>
+                            </div>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">Månedlig netto uttak lav periode (kr)</div>
+                            <div class="slider-input-container">
+                                <input type="range" min="0" max="100000" value="15000" step="1000" class="slider" id="lowMonthlyNetWithdrawal">
+                                <div class="value"><input type="text" id="lowMonthlyNetWithdrawal-value" value="15 000" oninput="validateInput(this)" onblur="updateSlider('lowMonthlyNetWithdrawal', this)" onkeypress="if(event.key === 'Enter') updateSlider('lowMonthlyNetWithdrawal', this)"></div>
+                            </div>
+                            <div class="slider-subtext" id="lowMonthlyNetWithdrawal-subtext"></div>
+                        </div>
+                    </div>
                     <div class="slider-container">
                         <div class="slider-label">Boligverdi (kr)</div>
                         <div class="slider-input-container">
@@ -564,6 +587,7 @@
                         <ul>
                             <li><strong>Grunnleggende innstillinger:</strong> Juster Fondsverdi, Skattefritt innskudd, Månedlig netto uttak, Årlig uttaksrate og Forventet avkastning ved hjelp av skyveknappene eller skriv inn verdier direkte.</li>
                             <li><strong>Avanserte innstillinger:</strong> Klikk på "Vis/Skjul avanserte innstillinger" for å tilpasse parametere som Porteføljeuttak startår, Boligverdi, Gjeld, Formueskatt, Inflasjon, og mer for en mer presis beregning.</li>
+                            <li><strong>Variabel uttak:</strong> Aktiver "Variabel uttak" for å definere et lavere uttak de første årene (f.eks. 10 år) og la kalkulatoren beregne det høyere uttaket som trengs etterpå for å vare resten av tidshorisonten.</li>
                             <li><strong>Resultater:</strong> Tabellen viser årlig utvikling av fondsverdien, pensjonsbeholdning, uttak, skatter og skattefritt innskudd. Meldinger øverst indikerer varighet, initialt uttak og maksimalt uttak for 30 år.</li>
                             <li><strong>Ekstra kolonner:</strong> Under avanserte innstillinger kan du vise flere detaljer i tabellen, som uttaksskatt og personfradrag.</li>
                             <li><strong>Personfradrag:</strong> Personfradraget kan nedjusteres nederst under avanserte innstillinger for å simulere annen skattbar inntekt.</li>
@@ -657,7 +681,6 @@
             </div>
         </div>
     </div>
-
     <script>
         let showExtraColumns = false;
         let showInfo = false;
@@ -665,7 +688,7 @@
         let showInheritance = false;
         let showPensionReturnAfterWithdrawal = false;
         let showAskOptimization = false;
-
+        let showVariableWithdrawal = false;
         const sliders = {
             grossValue: document.getElementById('grossValue'),
             taxFreeDeposit: document.getElementById('taxFreeDeposit'),
@@ -694,7 +717,9 @@
             folketrygdTaxRate: document.getElementById('folketrygdTaxRate'),
             folketrygdIncrease: document.getElementById('folketrygdIncrease'),
             inheritanceYear: document.getElementById('inheritanceYear'),
-            inheritanceTaxFree: document.getElementById('inheritanceTaxFree')
+            inheritanceTaxFree: document.getElementById('inheritanceTaxFree'),
+            lowWithdrawalYears: document.getElementById('lowWithdrawalYears'),
+            lowMonthlyNetWithdrawal: document.getElementById('lowMonthlyNetWithdrawal')
         };
         const values = {
             grossValue: document.getElementById('grossValue-value'),
@@ -724,9 +749,10 @@
             folketrygdTaxRate: document.getElementById('folketrygdTaxRate-value'),
             folketrygdIncrease: document.getElementById('folketrygdIncrease-value'),
             inheritanceYear: document.getElementById('inheritanceYear-value'),
-            inheritanceTaxFree: document.getElementById('inheritanceTaxFree-value')
+            inheritanceTaxFree: document.getElementById('inheritanceTaxFree-value'),
+            lowWithdrawalYears: document.getElementById('lowWithdrawalYears-value'),
+            lowMonthlyNetWithdrawal: document.getElementById('lowMonthlyNetWithdrawal-value')
         };
-
         // Debounce function to limit frequent updates
         function debounce(func, wait) {
             let timeout;
@@ -739,45 +765,45 @@
                 timeout = setTimeout(later, wait);
             };
         }
-
         // Attach debounced event listeners
         const debouncedUpdate = debounce(() => {
             updateMonthlyWithdrawalSubtext();
+            updateLowMonthlyWithdrawalSubtext();
             updateFolketrygdSubtext();
             calculateFIRE();
         }, 100);
-
         Object.keys(sliders).forEach(id => {
-            sliders[id].addEventListener('input', () => {
-                updateValue(id);
-                if (id === 'monthlyNetWithdrawal') {
-                    updateWithdrawalRateInfo();
-                } else if (id === 'withdrawalRate' || id === 'grossValue') {
-                    updateMonthlyWithdrawal();
-                }
-                debouncedUpdate();
-            });
+            if (sliders[id]) {
+                sliders[id].addEventListener('input', () => {
+                    updateValue(id);
+                    if (id === 'monthlyNetWithdrawal') {
+                        updateWithdrawalRateInfo();
+                    } else if (id === 'withdrawalRate' || id === 'grossValue') {
+                        updateMonthlyWithdrawal();
+                    }
+                    debouncedUpdate();
+                });
+            }
         });
-
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
         }
-
         function parseNumber(str) {
             const cleanedStr = str.replace(/\s/g, '').replace(',', '.');
             const value = parseFloat(cleanedStr);
             return isNaN(value) ? 0 : value;
         }
-
         function updateValue(id) {
             const slider = sliders[id];
             const valueInput = values[id];
-            const value = parseFloat(slider.value);
-            valueInput.value = formatValue(value, id);
+            if (slider && valueInput) {
+                const value = parseFloat(slider.value);
+                valueInput.value = formatValue(value, id);
+            }
         }
-
         function updateSlider(id, input) {
             const slider = sliders[id];
+            if (!slider) return;
             let value = input.value.replace(/\s/g, '');
             if (value === '') value = '0';
             value = parseInt(value, 10);
@@ -791,12 +817,14 @@
                 updateWithdrawalRateInfo();
             } else if (id === 'withdrawalRate' || id === 'grossValue') {
                 updateMonthlyWithdrawal();
+            } else if (id === 'lowMonthlyNetWithdrawal') {
+                updateLowMonthlyWithdrawalSubtext();
             }
             debouncedUpdate();
         }
-
         function updateSliderDecimal(id, input) {
             const slider = sliders[id];
+            if (!slider) return;
             let value = input.value.replace(/[^0-9,]/g, '').replace(',', '.');
             if (value === '') value = '0';
             value = parseFloat(value);
@@ -813,29 +841,24 @@
             }
             debouncedUpdate();
         }
-
         function validateInput(input) {
             input.value = input.value.replace(/[^0-9 ]/g, '');
         }
-
         function validateInputDecimal(input) {
             input.value = input.value.replace(/[^0-9,]/g, '');
         }
-
         function formatValue(value, id) {
-            if (['grossValue', 'taxFreeDeposit', 'monthlyNetWithdrawal', 'propertyValue', 'debt', 'wealthTaxThreshold', 'personalAllowance', 'privatePension', 'portfolioWithdrawalYear', 'birthYear', 'retirementAge', 'folketrygdAge', 'folketrygdPension', 'inheritanceYear', 'inheritanceTaxFree'].includes(id)) {
+            if (['grossValue', 'taxFreeDeposit', 'monthlyNetWithdrawal', 'propertyValue', 'debt', 'wealthTaxThreshold', 'personalAllowance', 'privatePension', 'portfolioWithdrawalYear', 'birthYear', 'retirementAge', 'folketrygdAge', 'folketrygdPension', 'inheritanceYear', 'inheritanceTaxFree', 'lowWithdrawalYears', 'lowMonthlyNetWithdrawal'].includes(id)) {
                 return formatNumber(Math.round(value));
             } else if (['withdrawalRate', 'returnRate', 'inflationRate', 'wealthTaxRate', 'shieldingRate', 'stockWithdrawalTax', 'fundDiscount', 'propertyDiscount', 'thresholdIncrease', 'pensionReturnRate', 'folketrygdIncrease', 'folketrygdTaxRate'].includes(id)) {
                 return value.toFixed(2).replace('.', ',');
             }
             return value.toString();
         }
-
         function toggleAdvancedSettings() {
             document.getElementById('advancedSettings').classList.toggle('hidden');
             debouncedUpdate();
         }
-
         function toggleExtraColumns() {
             showExtraColumns = !showExtraColumns;
             document.querySelectorAll('.extra-column').forEach(col => {
@@ -846,7 +869,6 @@
             toggleButton.classList.toggle('active', showExtraColumns);
             debouncedUpdate();
         }
-
         function togglePensionSettings() {
             showPension = !showPension;
             const pensionSettings = document.getElementById('pensionSettings');
@@ -859,7 +881,6 @@
             });
             debouncedUpdate();
         }
-
         function togglePensionReturnAfterWithdrawal() {
             showPensionReturnAfterWithdrawal = !showPensionReturnAfterWithdrawal;
             const toggleButton = document.getElementById('togglePensionReturnAfterButton');
@@ -867,7 +888,6 @@
             toggleButton.classList.toggle('active', showPensionReturnAfterWithdrawal);
             debouncedUpdate();
         }
-
         function toggleInheritanceSettings() {
             showInheritance = !showInheritance;
             const inheritanceSettings = document.getElementById('inheritanceSettings');
@@ -877,7 +897,6 @@
             toggleButton.classList.toggle('active', showInheritance);
             debouncedUpdate();
         }
-
         function toggleAskOptimization() {
             showAskOptimization = !showAskOptimization;
             const toggleButton = document.getElementById('toggleAskButton');
@@ -885,14 +904,21 @@
             toggleButton.classList.toggle('active', showAskOptimization);
             debouncedUpdate();
         }
-
+        function toggleVariableWithdrawal() {
+            showVariableWithdrawal = !showVariableWithdrawal;
+            const variableSettings = document.getElementById('variableWithdrawalSettings');
+            const toggleButton = document.getElementById('toggleVariableButton');
+            variableSettings.classList.toggle('hidden', !showVariableWithdrawal);
+            toggleButton.innerText = showVariableWithdrawal ? 'Deaktiver variabel uttak' : 'Aktiver variabel uttak';
+            toggleButton.classList.toggle('active', showVariableWithdrawal);
+            debouncedUpdate();
+        }
         function toggleInfo() {
             showInfo = !showInfo;
             document.getElementById('infoSection').classList.toggle('hidden', !showInfo);
             document.getElementById('tableSection').classList.toggle('hidden', showInfo);
             document.getElementById('infoButton').innerText = showInfo ? 'Vis resultattabell' : 'Vis informasjon om kalkulatoren';
         }
-
         function updateWithdrawalRateInfo() {
             const monthlyNetWithdrawal = parseNumber(values.monthlyNetWithdrawal.value);
             const grossValue = parseNumber(values.grossValue.value) || 1;
@@ -900,7 +926,6 @@
             values.withdrawalRate.value = withdrawalRate.toFixed(1).replace('.', ',');
             sliders.withdrawalRate.value = Math.min(withdrawalRate, parseFloat(sliders.withdrawalRate.max));
         }
-
         function updateMonthlyWithdrawal() {
             const withdrawalRate = parseNumber(values.withdrawalRate.value);
             const grossValue = parseNumber(values.grossValue.value) || 1;
@@ -909,7 +934,6 @@
             sliders.monthlyNetWithdrawal.value = Math.min(Math.round(monthlyNetWithdrawal), parseFloat(sliders.monthlyNetWithdrawal.max));
             updateWithdrawalRateInfo();
         }
-
         function updateMonthlyWithdrawalSubtext() {
             const monthlyNetWithdrawal = parseNumber(values.monthlyNetWithdrawal.value);
             const inflationRate = parseNumber(values.inflationRate.value) / 100;
@@ -920,7 +944,16 @@
                 ? `Dette uttaket tilsvarer ${formatNumber(Math.round(monthlyNetWithdrawal / Math.pow(1 + inflationRate, yearsUntilWithdrawal)))} i dagens verdi (justert for inflasjon)`
                 : '';
         }
-
+        function updateLowMonthlyWithdrawalSubtext() {
+            const lowMonthlyNetWithdrawal = parseNumber(values.lowMonthlyNetWithdrawal.value);
+            const inflationRate = parseNumber(values.inflationRate.value) / 100;
+            const portfolioWithdrawalYear = parseNumber(values.portfolioWithdrawalYear.value);
+            const currentYear = new Date().getFullYear();
+            const yearsUntilWithdrawal = portfolioWithdrawalYear - currentYear;
+            document.getElementById('lowMonthlyNetWithdrawal-subtext').innerText = yearsUntilWithdrawal > 0 && lowMonthlyNetWithdrawal > 0
+                ? `Dette uttaket tilsvarer ${formatNumber(Math.round(lowMonthlyNetWithdrawal / Math.pow(1 + inflationRate, yearsUntilWithdrawal)))} i dagens verdi (justert for inflasjon)`
+                : '';
+        }
         function updateFolketrygdSubtext() {
             const birthYear = parseNumber(values.birthYear.value);
             const yearsDifference = birthYear - 1963;
@@ -930,11 +963,9 @@
             const earliestAgeMonths = Math.round((earliestAge - earliestAgeYears) * 12);
             document.getElementById('folketrygdAge-subtext').innerText = `Basert på din alder kan du tidligst ta ut pensjon fra ${earliestAgeYears} år og ${earliestAgeMonths} måneder`;
         }
-
         function calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, stockWithdrawalTax, personalAllowance) {
             if (netWithdrawal <= 0) return { grossWithdrawal: 0, withdrawalTax: 0, taxSavings: 0, utilizedAllowance: 0 };
             if (taxFreeDeposit >= netWithdrawal) return { grossWithdrawal: netWithdrawal, withdrawalTax: 0, taxSavings: 0, utilizedAllowance: 0 };
-
             const effectiveTaxRate = stockWithdrawalTax / 100;
             const adjustmentFactor = 1.72;
             const incomeTaxRate = effectiveTaxRate / adjustmentFactor;
@@ -942,49 +973,15 @@
             const adjustedTaxableGain = taxFreeDeposit === 0 ? netWithdrawal * adjustmentFactor : taxableWithdrawal / (1 - effectiveTaxRate) * adjustmentFactor;
             const utilizedAllowance = Math.min(personalAllowance, adjustedTaxableGain);
             const taxSavings = utilizedAllowance * incomeTaxRate;
-
             if (utilizedAllowance >= adjustedTaxableGain) {
                 return { grossWithdrawal: netWithdrawal, withdrawalTax: 0, taxSavings: taxableWithdrawal, utilizedAllowance };
             }
-
             const grossTaxable = Math.max(0, Math.round((taxableWithdrawal - taxSavings) / (1 - effectiveTaxRate)));
             const grossWithdrawal = taxFreeDeposit + grossTaxable;
             const withdrawalTax = grossTaxable > 0 ? Math.round(grossWithdrawal - netWithdrawal) : 0;
-
             return { grossWithdrawal, withdrawalTax, taxSavings, utilizedAllowance };
         }
-
-        function simulatePortfolio(initialMonthlyNetWithdrawal, maxYears) {
-            const params = {
-                taxFreeDeposit: parseNumber(values.taxFreeDeposit.value),
-                grossValue: parseNumber(values.grossValue.value),
-                returnRate: parseNumber(values.returnRate.value) / 100,
-                pensionReturnRate: parseNumber(values.pensionReturnRate.value) / 100,
-                inflationRate: parseNumber(values.inflationRate.value) / 100,
-                wealthTaxRate: parseNumber(values.wealthTaxRate.value) / 100,
-                shieldingRate: parseNumber(values.shieldingRate.value) / 100,
-                stockWithdrawalTax: parseNumber(values.stockWithdrawalTax.value),
-                fundDiscount: parseNumber(values.fundDiscount.value) / 100,
-                propertyValue: parseNumber(values.propertyValue.value),
-                debt: parseNumber(values.debt.value),
-                propertyDiscount: parseNumber(values.propertyDiscount.value) / 100,
-                wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
-                thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
-                personalAllowance: parseNumber(values.personalAllowance.value),
-                portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
-                birthYear: parseNumber(values.birthYear.value),
-                retirementAge: parseNumber(values.retirementAge.value),
-                folketrygdAge: parseNumber(values.folketrygdAge.value),
-                privatePension: parseNumber(values.privatePension.value),
-                folketrygdPension: parseNumber(values.folketrygdPension.value),
-                folketrygdTaxRate: parseNumber(values.folketrygdTaxRate.value),
-                folketrygdIncrease: parseNumber(values.folketrygdIncrease.value) / 100,
-                inheritanceYear: parseNumber(values.inheritanceYear.value),
-                inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
-            };
-
-            const currentYear = 2025;
-
+        function simulatePortfolio(initialMonthlyNetWithdrawal, maxYears, params, isLowPeriod = false, startYear = 0) {
             let { taxFreeDeposit, grossValue, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
             let initialTaxFreeDeposit = taxFreeDeposit;
             let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
@@ -998,12 +995,11 @@
             let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
             let previousGrossWithdrawal = 0;
             let previousSurplus = 0;
-
-            for (let year = 0; year <= maxYears; year++) {
+            const currentYear = 2025;
+            for (let year = startYear; year < startYear + maxYears; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
                 let currentNetWithdrawal = Math.round(netWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
-
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
                     const pensionBruttoWithdrawal = Math.round(pensionValue / pensionWithdrawalPeriod);
                     pensionNetWithdrawal = Math.round(pensionBruttoWithdrawal * 0.78);
@@ -1015,26 +1011,22 @@
                 } else {
                     pensionValue = Math.round(pensionValue * (1 + params.pensionReturnRate));
                 }
-
                 if (showPension && (portfolioWithdrawalYear + year) >= folketrygdYear) {
                     const pensionYear = portfolioWithdrawalYear + year;
                     const yearsFromNow = pensionYear - currentYear;
                     const adjustedPension = params.folketrygdPension * Math.pow(1 + folketrygdIncrease, yearsFromNow);
                     folketrygdNetWithdrawal = Math.round(adjustedPension * (1 - params.folketrygdTaxRate / 100));
                 }
-
                 const required = Math.round(netWithdrawal * inflationFactor);
                 const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
                 currentNetWithdrawal = Math.max(0, required - pensions);
                 const surplus = Math.max(0, pensions - required);
-
                 const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(currentNetWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, currentNetWithdrawal);
                 const uttakNy = previousGrossWithdrawal;
-
-                if (year === 0) {
+                if (year === startYear) {
                     portfolioValue = grossValue;
-                    displayedTaxFreeDeposit = initialTaxFreeDeposit; // Show original input
+                    displayedTaxFreeDeposit = initialTaxFreeDeposit;
                     taxFreeDeposit = Math.max(0, taxFreeDeposit - withdrawalFromTaxFree);
                 } else {
                     if (showInheritance && (portfolioWithdrawalYear + year) === inheritanceYear) {
@@ -1052,7 +1044,6 @@
                     taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
                     displayedTaxFreeDeposit = taxFreeDeposit;
                     portfolioValue = Math.round(portfolioValue * (1 + params.returnRate) - uttakNy - previousWealthTax);
-
                     if (showAskOptimization) {
                         const adjustmentFactor = 1.72;
                         const maxFreeGain = Math.round(params.personalAllowance / adjustmentFactor);
@@ -1061,16 +1052,13 @@
                         taxFreeDeposit += added;
                         displayedTaxFreeDeposit += added;
                     }
-
-                    if (portfolioValue <= 0 && taxFreeDeposit <= 0) return year;
+                    if (portfolioValue <= 0 && taxFreeDeposit <= 0) return { duration: year - startYear + 1, portfolioValue: 0, taxFreeDeposit: 0 };
                 }
-
                 const taxablePortfolioValue = Math.round(portfolioValue * (1 - params.fundDiscount));
                 const taxablePropertyValue = Math.round(params.propertyValue * (1 - params.propertyDiscount));
                 const currentThreshold = Math.round(params.wealthTaxThreshold * Math.pow(1 + params.thresholdIncrease, year));
                 const wealthTax = Math.round(Math.max(0, taxablePortfolioValue + taxablePropertyValue - params.debt - currentThreshold) * params.wealthTaxRate);
                 const annualReturn = Math.round(portfolioValue * params.returnRate);
-
                 previousDisplayedTaxFreeDeposit = displayedTaxFreeDeposit;
                 previousNetWithdrawal = currentNetWithdrawal;
                 previousWithdrawalTax = withdrawalTax;
@@ -1079,20 +1067,21 @@
                 previousGrossWithdrawal = grossWithdrawal;
                 previousSurplus = surplus;
             }
-            return maxYears + 1;
+            return { duration: maxYears, portfolioValue, taxFreeDeposit: displayedTaxFreeDeposit };
         }
-
-        function calculateMaxMonthlyWithdrawal(targetYears) {
-            const grossValue = parseNumber(values.grossValue.value);
-            let low = 0, high = grossValue / 12, maxMonthlyWithdrawal = 0;
+        function calculateMaxMonthlyWithdrawalAfterLowPeriod(lowYears, targetTotalYears, params) {
+            if (lowYears >= targetTotalYears) return 0;
+            const lowMonthly = parseNumber(values.lowMonthlyNetWithdrawal.value);
+            const lowSimulation = simulatePortfolio(lowMonthly, lowYears, params, true, 0);
+            if (lowSimulation.portfolioValue <= 0) return 0;
+            const remainingYears = targetTotalYears - lowYears;
+            let low = 0, high = lowSimulation.portfolioValue / 12, maxMonthlyWithdrawal = 0;
             const epsilon = 1000, maxIterations = 100;
             let iterations = 0;
-
             while (low <= high && iterations < maxIterations) {
                 const mid = (low + high) / 2;
-                const result = simulatePortfolio(mid, targetYears);
-
-                if (result >= targetYears) {
+                const remainingSimulation = simulatePortfolio(mid, remainingYears, { ...params, grossValue: lowSimulation.portfolioValue, taxFreeDeposit: lowSimulation.taxFreeDeposit }, false, lowYears);
+                if (remainingSimulation.duration >= remainingYears) {
                     low = mid + 1;
                     maxMonthlyWithdrawal = mid;
                 } else {
@@ -1102,7 +1091,6 @@
             }
             return Math.round(maxMonthlyWithdrawal);
         }
-
         function calculateFIRE() {
             const params = {
                 taxFreeDeposit: parseNumber(values.taxFreeDeposit.value),
@@ -1133,9 +1121,7 @@
                 inheritanceYear: parseNumber(values.inheritanceYear.value),
                 inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
             };
-
             const currentYear = 2025;
-
             let { taxFreeDeposit, grossValue, monthlyNetWithdrawal, years, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
             let initialTaxFreeDeposit = taxFreeDeposit;
             let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
@@ -1151,12 +1137,27 @@
             let previousSurplus = 0;
             let duration = 0;
             const tableRows = [];
-
-            for (let year = 0; year <= years; year++) {
+            let lowYears = showVariableWithdrawal ? parseInt(values.lowWithdrawalYears.value) || 0 : 0;
+            let lowMonthlyNetWithdrawal = showVariableWithdrawal ? parseNumber(values.lowMonthlyNetWithdrawal.value) : 0;
+            let highMonthlyNetWithdrawal = showVariableWithdrawal ? calculateMaxMonthlyWithdrawalAfterLowPeriod(lowYears, years, params) : 0;
+            let currentInitialNetWithdrawal = showVariableWithdrawal && lowYears > 0 ? lowMonthlyNetWithdrawal * 12 : initialNetWithdrawal;
+            let isLowPeriodActive = showVariableWithdrawal && lowYears > 0;
+            let yearOffset = 0;
+            if (isLowPeriodActive) {
+                const lowSimulation = simulatePortfolio(lowMonthlyNetWithdrawal, lowYears, params, true, 0);
+                portfolioValue = lowSimulation.portfolioValue;
+                taxFreeDeposit = lowSimulation.taxFreeDeposit;
+                displayedTaxFreeDeposit = taxFreeDeposit;
+                yearOffset = lowYears;
+                currentInitialNetWithdrawal = highMonthlyNetWithdrawal * 12;
+                if (portfolioValue <= 0) {
+                    duration = lowYears;
+                }
+            }
+            for (let year = yearOffset; year <= years; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
-                let netWithdrawal = Math.round(initialNetWithdrawal * inflationFactor);
+                let netWithdrawal = Math.round(currentInitialNetWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
-
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
                     const pensionBruttoWithdrawal = Math.round(pensionValue / pensionWithdrawalPeriod);
                     pensionNetWithdrawal = Math.round(pensionBruttoWithdrawal * 0.78);
@@ -1168,33 +1169,27 @@
                 } else {
                     pensionValue = Math.round(pensionValue * (1 + params.pensionReturnRate));
                 }
-
                 if (showPension && (portfolioWithdrawalYear + year) >= folketrygdYear) {
                     const pensionYear = portfolioWithdrawalYear + year;
                     const yearsFromNow = pensionYear - currentYear;
                     const adjustedPension = params.folketrygdPension * Math.pow(1 + folketrygdIncrease, yearsFromNow);
                     folketrygdNetWithdrawal = Math.round(adjustedPension * (1 - params.folketrygdTaxRate / 100));
                 }
-
                 let deflatedMonthlyPension = 0;
                 if (showPension) {
                     const totalAnnualPension = pensionNetWithdrawal + folketrygdNetWithdrawal;
                     const monthlyPension = totalAnnualPension / 12;
                     deflatedMonthlyPension = Math.round(monthlyPension / inflationFactor);
                 }
-
-                const required = Math.round(initialNetWithdrawal * inflationFactor);
+                const required = Math.round(currentInitialNetWithdrawal * inflationFactor);
                 const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
                 netWithdrawal = Math.max(0, required - pensions);
                 const surplus = Math.max(0, pensions - required);
-
                 const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, netWithdrawal);
                 const uttakNy = previousGrossWithdrawal;
-
-                if (year === 0) {
-                    portfolioValue = grossValue;
-                    displayedTaxFreeDeposit = initialTaxFreeDeposit; // Show original input
+                if (year === yearOffset) {
+                    displayedTaxFreeDeposit = initialTaxFreeDeposit;
                     taxFreeDeposit = Math.max(0, taxFreeDeposit - withdrawalFromTaxFree);
                 } else {
                     if (showInheritance && (portfolioWithdrawalYear + year) === inheritanceYear) {
@@ -1212,7 +1207,6 @@
                     taxFreeDeposit = Math.max(0, taxFreeDeposit + shieldingIncrease);
                     displayedTaxFreeDeposit = taxFreeDeposit;
                     portfolioValue = Math.round(portfolioValue * (1 + params.returnRate) - uttakNy - previousWealthTax);
-
                     if (showAskOptimization) {
                         const adjustmentFactor = 1.72;
                         const maxFreeGain = Math.round(params.personalAllowance / adjustmentFactor);
@@ -1221,31 +1215,29 @@
                         taxFreeDeposit += added;
                         displayedTaxFreeDeposit += added;
                     }
-
                     if (portfolioValue <= 0 && taxFreeDeposit <= 0) {
                         duration = year;
                         break;
                     }
                 }
-
                 const taxablePortfolioValue = Math.round(portfolioValue * (1 - params.fundDiscount));
                 const taxablePropertyValue = Math.round(params.propertyValue * (1 - params.propertyDiscount));
                 const currentThreshold = Math.round(params.wealthTaxThreshold * Math.pow(1 + params.thresholdIncrease, year));
                 const wealthTax = Math.round(Math.max(0, taxablePortfolioValue + taxablePropertyValue - params.debt - currentThreshold) * params.wealthTaxRate);
                 const annualReturn = Math.round(portfolioValue * params.returnRate);
-
                 const isRetirementYearTjenestepensjon = showPension && (portfolioWithdrawalYear + year) === retirementYear;
                 const isRetirementYearFolketrygd = showPension && (portfolioWithdrawalYear + year) === folketrygdYear;
                 const isInheritanceYear = showInheritance && (portfolioWithdrawalYear + year) === inheritanceYear;
                 let rowClass = '';
-                if (isInheritanceYear) {
+                if (isLowPeriodActive && year < lowYears) {
+                    rowClass = 'low-withdrawal-period';
+                } else if (isInheritanceYear) {
                     rowClass = 'inheritance-year';
                 } else if (isRetirementYearTjenestepensjon) {
                     rowClass = 'retirement-year-tjenestepensjon';
                 } else if (isRetirementYearFolketrygd) {
                     rowClass = 'retirement-year-folketrygd';
                 }
-
                 tableRows.push(`
                     <tr class="${rowClass}">
                         <td class="px-6 py-4 text-base">${year}</td>
@@ -1254,7 +1246,7 @@
                         <td class="px-6 py-4 text-base">${formatNumber(Math.round(portfolioValue))}</td>
                         <td class="px-6 py-4 text-base">${formatNumber(Math.round(displayedTaxFreeDeposit))}</td>
                         <td class="px-6 py-4 text-base">${formatNumber(annualReturn)}</td>
-                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(year > 0 ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0)}</td>
+                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(year > yearOffset ? Math.round(previousDisplayedTaxFreeDeposit * params.shieldingRate) : 0)}</td>
                         <td class="px-6 py-4 text-base">${formatNumber(grossWithdrawal)}</td>
                         <td class="px-6 py-4 text-base">${formatNumber(netWithdrawal)}</td>
                         <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(withdrawalTax)}</td>
@@ -1266,7 +1258,6 @@
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(deflatedMonthlyPension)}</td>
                     </tr>
                 `);
-
                 previousDisplayedTaxFreeDeposit = displayedTaxFreeDeposit;
                 previousNetWithdrawal = netWithdrawal;
                 previousWithdrawalTax = withdrawalTax;
@@ -1275,7 +1266,6 @@
                 previousGrossWithdrawal = grossWithdrawal;
                 previousSurplus = surplus;
             }
-
             document.getElementById('resultsTableHead').innerHTML = `<tr>
                 <th class="px-6 py-3 text-base font-medium">År</th>
                 <th class="px-6 py-3 text-base font-medium">Årstall</th>
@@ -1295,16 +1285,69 @@
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Månedlig pensjon (netto, dagens verdi, kr)</th>
             </tr>`;
             document.getElementById('resultsTable').innerHTML = tableRows.join('');
-            document.getElementById('durationMessage').innerText = duration > 0 ? `Fondsverdien vil vare i ${duration} år med dette uttaket!` : `Fondsverdien vil vare i mer enn ${years} år med dette uttaket!`;
-            document.getElementById('annualWithdrawal').innerText = `Initialt årlig uttak (netto):\n ${formatNumber(Math.round(initialNetWithdrawal))} per år / ${formatNumber(Math.round(initialNetWithdrawal / 12))} per måned`;
+            let durationMessage = duration > 0 ? `Fondsverdien vil vare i ${duration} år med dette uttaket!` : `Fondsverdien vil vare i mer enn ${years} år med dette uttaket!`;
+            let annualMessage = `Initialt årlig uttak (netto):\n ${formatNumber(Math.round(initialNetWithdrawal))} per år / ${formatNumber(Math.round(initialNetWithdrawal / 12))} per måned`;
+            if (showVariableWithdrawal && lowYears > 0) {
+                annualMessage = `Lavt uttak (første ${lowYears} år): ${formatNumber(Math.round(lowMonthlyNetWithdrawal * 12))} per år / ${formatNumber(Math.round(lowMonthlyNetWithdrawal))} per måned\nHøyt uttak (etterpå): ${formatNumber(Math.round(highMonthlyNetWithdrawal * 12))} per år / ${formatNumber(Math.round(highMonthlyNetWithdrawal))} per måned`;
+                if (highMonthlyNetWithdrawal <= 0) {
+                    durationMessage = `Porteføljen varer ikke etter lav periode! Juster innstillinger.`;
+                }
+            }
+            document.getElementById('durationMessage').innerText = durationMessage;
+            document.getElementById('annualWithdrawal').innerText = annualMessage;
             const max30 = calculateMaxMonthlyWithdrawal(30);
             const max50 = calculateMaxMonthlyWithdrawal(50);
             document.getElementById('maxWithdrawal').innerText = `Maksimalt netto uttak for 30 år / 50 år:\n ${formatNumber(max30)} per måned / ${formatNumber(max50)} per måned`;
             document.getElementById('results-container').classList.remove('hidden');
         }
+        function calculateMaxMonthlyWithdrawal(targetYears) {
+            const grossValue = parseNumber(values.grossValue.value);
+            let low = 0, high = grossValue / 12, maxMonthlyWithdrawal = 0;
+            const epsilon = 1000, maxIterations = 100;
+            let iterations = 0;
+            while (low <= high && iterations < maxIterations) {
+                const mid = (low + high) / 2;
+                const result = simulatePortfolio(mid, targetYears, {
+                    taxFreeDeposit: parseNumber(values.taxFreeDeposit.value),
+                    grossValue: parseNumber(values.grossValue.value),
+                    returnRate: parseNumber(values.returnRate.value) / 100,
+                    pensionReturnRate: parseNumber(values.pensionReturnRate.value) / 100,
+                    inflationRate: parseNumber(values.inflationRate.value) / 100,
+                    wealthTaxRate: parseNumber(values.wealthTaxRate.value) / 100,
+                    shieldingRate: parseNumber(values.shieldingRate.value) / 100,
+                    stockWithdrawalTax: parseNumber(values.stockWithdrawalTax.value),
+                    fundDiscount: parseNumber(values.fundDiscount.value) / 100,
+                    propertyValue: parseNumber(values.propertyValue.value),
+                    debt: parseNumber(values.debt.value),
+                    propertyDiscount: parseNumber(values.propertyDiscount.value) / 100,
+                    wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
+                    thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
+                    personalAllowance: parseNumber(values.personalAllowance.value),
+                    portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
+                    birthYear: parseNumber(values.birthYear.value),
+                    retirementAge: parseNumber(values.retirementAge.value),
+                    folketrygdAge: parseNumber(values.folketrygdAge.value),
+                    privatePension: parseNumber(values.privatePension.value),
+                    folketrygdPension: parseNumber(values.folketrygdPension.value),
+                    folketrygdTaxRate: parseNumber(values.folketrygdTaxRate.value),
+                    folketrygdIncrease: parseNumber(values.folketrygdIncrease.value) / 100,
+                    inheritanceYear: parseNumber(values.inheritanceYear.value),
+                    inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
+                });
+                if (result.duration >= targetYears) {
+                    low = mid + 1;
+                    maxMonthlyWithdrawal = mid;
+                } else {
+                    high = mid - 1;
+                }
+                iterations++;
+            }
+            return Math.round(maxMonthlyWithdrawal);
+        }
         document.addEventListener('DOMContentLoaded', () => {
             updateWithdrawalRateInfo();
             updateMonthlyWithdrawalSubtext();
+            updateLowMonthlyWithdrawalSubtext();
             updateFolketrygdSubtext();
             calculateFIRE();
         });
