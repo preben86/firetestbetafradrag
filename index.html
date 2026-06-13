@@ -574,6 +574,9 @@
                             <div class="value"><input type="text" id="personalAllowance-value" value="108 550" oninput="validateInput(this)" onblur="updateSlider('personalAllowance', this)" onkeypress="if(event.key === 'Enter') updateSlider('personalAllowance', this)"></div>
                         </div>
                     </div>
+                    <button onclick="toggleFollowInflationPersonalAllowance()" class="toggle-button" id="toggleFollowInflationButton" style="margin-top: 8px;">
+                                        Aktiver inflasjonsjustering av personfradrag
+                        </button>
                 </div>
             </div>
             <!-- Results Section -->
@@ -689,6 +692,7 @@
         let showPensionReturnAfterWithdrawal = false;
         let showAskOptimization = false;
         let showVariableWithdrawal = false;
+        let followInflationPersonalAllowance = false;
         const sliders = {
             grossValue: document.getElementById('grossValue'),
             taxFreeDeposit: document.getElementById('taxFreeDeposit'),
@@ -801,6 +805,18 @@
                 valueInput.value = formatValue(value, id);
             }
         }
+function toggleFollowInflationPersonalAllowance() {
+    followInflationPersonalAllowance = !followInflationPersonalAllowance;
+    const toggleButton = document.getElementById('toggleFollowInflationButton');
+    toggleButton.innerText = followInflationPersonalAllowance 
+        ? 'Deaktiver inflasjonsjustering av personfradrag' 
+        : 'Aktiver inflasjonsjustering av personfradrag';
+    toggleButton.classList.toggle('active', followInflationPersonalAllowance);
+    calculateFIRE();
+}
+
+ 
+        
         function updateSlider(id, input) {
             const slider = sliders[id];
             if (!slider) return;
@@ -983,6 +999,8 @@
         }
         function simulatePortfolio(initialMonthlyNetWithdrawal, maxYears, params, isLowPeriod = false, startYear = 0) {
             let { taxFreeDeposit, grossValue, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
+            let currentPersonalAllowance = params.personalAllowance || 108550;
+            const followInflation = params.followInflationPersonalAllowance || false;
             let initialTaxFreeDeposit = taxFreeDeposit;
             let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
             let displayedTaxFreeDeposit = initialTaxFreeDeposit;
@@ -998,6 +1016,9 @@
             const currentYear = 2025;
             for (let year = startYear; year < startYear + maxYears; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
+                if (followInflation) {
+    currentPersonalAllowance = Math.round((params.personalAllowance || 108550) * inflationFactor);
+}
                 let currentNetWithdrawal = Math.round(netWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
@@ -1021,7 +1042,7 @@
                 const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
                 currentNetWithdrawal = Math.max(0, required - pensions);
                 const surplus = Math.max(0, pensions - required);
-                const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(currentNetWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
+                const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(currentNetWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, currentPersonalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, currentNetWithdrawal);
                 const uttakNy = previousGrossWithdrawal;
                 if (year === startYear) {
@@ -1110,6 +1131,7 @@
                 wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
                 thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
                 personalAllowance: parseNumber(values.personalAllowance.value),
+                followInflationPersonalAllowance: followInflationPersonalAllowance,
                 portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
                 birthYear: parseNumber(values.birthYear.value),
                 retirementAge: parseNumber(values.retirementAge.value),
@@ -1133,6 +1155,7 @@
             const folketrygdYear = birthYear + folketrygdAge;
             let initialNetWithdrawal = monthlyNetWithdrawal * 12;
             let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
+            let currentPersonalAllowance = params.personalAllowance;
             let previousGrossWithdrawal = 0;
             let previousSurplus = 0;
             let duration = 0;
@@ -1156,6 +1179,10 @@
             }
             for (let year = yearOffset; year <= years; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
+                // Inflasjonsjustering av personfradrag
+                   if (followInflationPersonalAllowance) {
+                    currentPersonalAllowance = Math.round(params.personalAllowance * Math.pow(1 + params.inflationRate, year));
+                    }
                 let netWithdrawal = Math.round(currentInitialNetWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
@@ -1185,7 +1212,7 @@
                 const pensions = pensionNetWithdrawal + folketrygdNetWithdrawal;
                 netWithdrawal = Math.max(0, required - pensions);
                 const surplus = Math.max(0, pensions - required);
-                const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, params.personalAllowance);
+                const { grossWithdrawal, withdrawalTax, utilizedAllowance } = calculateGrossWithdrawal(netWithdrawal, taxFreeDeposit, params.stockWithdrawalTax, currentPersonalAllowance);
                 const withdrawalFromTaxFree = Math.min(taxFreeDeposit, netWithdrawal);
                 const uttakNy = previousGrossWithdrawal;
                 if (year === yearOffset) {
@@ -1332,7 +1359,8 @@
                     folketrygdTaxRate: parseNumber(values.folketrygdTaxRate.value),
                     folketrygdIncrease: parseNumber(values.folketrygdIncrease.value) / 100,
                     inheritanceYear: parseNumber(values.inheritanceYear.value),
-                    inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
+                    inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value),
+                    followInflationPersonalAllowance: followInflationPersonalAllowance
                 });
                 if (result.duration >= targetYears) {
                     low = mid + 1;
