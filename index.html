@@ -377,8 +377,8 @@
                 <div class="slider-container">
                     <div class="slider-label">Forventet avkastning (%)</div>
                     <div class="slider-input-container">
-                        <input type="range" min="0" max="20" value="8" step="0.1" class="slider" id="returnRate">
-                        <div class="value"><input type="text" id="returnRate-value" value="8" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('returnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('returnRate', this)"></div>
+                        <input type="range" min="0" max="20" value="6" step="0.1" class="slider" id="returnRate">
+                        <div class="value"><input type="text" id="returnRate-value" value="6" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('returnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('returnRate', this)"></div>
                     </div>
                 </div>
                 <button onclick="toggleAdvancedSettings()" class="toggle-button">Vis/Skjul avanserte innstillinger</button>
@@ -417,8 +417,8 @@
                         <div class="slider-container">
                             <div class="slider-label">Skatt på folketrygd (%)</div>
                             <div class="slider-input-container">
-                                <input type="range" min="0" max="22" value="22" step="0.1" class="slider" id="folketrygdTaxRate">
-                                <div class="value"><input type="text" id="folketrygdTaxRate-value" value="22" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('folketrygdTaxRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('folketrygdTaxRate', this)"></div>
+                                <input type="range" min="0" max="22" value="0" step="0.1" class="slider" id="folketrygdTaxRate">
+                                <div class="value"><input type="text" id="folketrygdTaxRate-value" value="0" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('folketrygdTaxRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('folketrygdTaxRate', this)"></div>
                             </div>
                         </div>
                         <div class="slider-container">
@@ -438,15 +438,15 @@
                         <div class="slider-container">
                             <div class="slider-label">Privat pensjonsoppsparing (kr)</div>
                             <div class="slider-input-container">
-                                <input type="range" min="0" max="5000000" value="800000" step="10000" class="slider" id="privatePension">
-                                <div class="value"><input type="text" id="privatePension-value" value="800 000" oninput="validateInput(this)" onblur="updateSlider('privatePension', this)" onkeypress="if(event.key === 'Enter') updateSlider('privatePension', this)"></div>
+                                <input type="range" min="0" max="5000000" value="1150000" step="10000" class="slider" id="privatePension">
+                                <div class="value"><input type="text" id="privatePension-value" value="1 150 000" oninput="validateInput(this)" onblur="updateSlider('privatePension', this)" onkeypress="if(event.key === 'Enter') updateSlider('privatePension', this)"></div>
                             </div>
                         </div>
                         <div class="slider-container">
                             <div class="slider-label">Forventet avkastning pensjon (%)</div>
                             <div class="slider-input-container">
-                                <input type="range" min="0" max="20" value="5.75" step="0.1" class="slider" id="pensionReturnRate">
-                                <div class="value"><input type="text" id="pensionReturnRate-value" value="5,75" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('pensionReturnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('pensionReturnRate', this)"></div>
+                                <input type="range" min="0" max="20" value="6" step="0.1" class="slider" id="pensionReturnRate">
+                                <div class="value"><input type="text" id="pensionReturnRate-value" value="6" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('pensionReturnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('pensionReturnRate', this)"></div>
                             </div>
                         </div>
                         <button onclick="togglePensionReturnAfterWithdrawal()" class="toggle-button" id="togglePensionReturnAfterButton">Aktiver avkastning etter uttak</button>
@@ -457,15 +457,15 @@
                         <div class="slider-container">
                             <div class="slider-label">Arveår</div>
                             <div class="slider-input-container">
-                                <input type="range" min="2025" max="2075" value="2050" step="1" class="slider" id="inheritanceYear">
-                                <div class="value"><input type="text" id="inheritanceYear-value" value="2050" oninput="validateInput(this)" onblur="updateSlider('inheritanceYear', this)" onkeypress="if(event.key === 'Enter') updateSlider('inheritanceYear', this)"></div>
+                                <input type="range" min="2025" max="2075" value="2045" step="1" class="slider" id="inheritanceYear">
+                                <div class="value"><input type="text" id="inheritanceYear-value" value="2045" oninput="validateInput(this)" onblur="updateSlider('inheritanceYear', this)" onkeypress="if(event.key === 'Enter') updateSlider('inheritanceYear', this)"></div>
                             </div>
                         </div>
                         <div class="slider-container">
                             <div class="slider-label">Skattefritt innskudd fra arv (kr)</div>
                             <div class="slider-input-container">
-                                <input type="range" min="0" max="10000000" value="0" step="10000" class="slider" id="inheritanceTaxFree">
-                                <div class="value"><input type="text" id="inheritanceTaxFree-value" value="0" oninput="validateInput(this)" onblur="updateSlider('inheritanceTaxFree', this)" onkeypress="if(event.key === 'Enter') updateSlider('inheritanceTaxFree', this)"></div>
+                                <input type="range" min="0" max="10000000" value="1500000" step="10000" class="slider" id="inheritanceTaxFree">
+                                <div class="value"><input type="text" id="inheritanceTaxFree-value" value="1 500 000" oninput="validateInput(this)" onblur="updateSlider('inheritanceTaxFree', this)" onkeypress="if(event.key === 'Enter') updateSlider('inheritanceTaxFree', this)"></div>
                             </div>
                         </div>
                     </div>
@@ -493,8 +493,8 @@
                     <div class="slider-container">
                         <div class="slider-label">Boligverdi (kr)</div>
                         <div class="slider-input-container">
-                            <input type="range" min="0" max="20000000" value="0" step="10000" class="slider" id="propertyValue">
-                            <div class="value"><input type="text" id="propertyValue-value" value="0" oninput="validateInput(this)" onblur="updateSlider('propertyValue', this)" onkeypress="if(event.key === 'Enter') updateSlider('propertyValue', this)"></div>
+                            <input type="range" min="0" max="20000000" value="3150000" step="10000" class="slider" id="propertyValue">
+                            <div class="value"><input type="text" id="propertyValue-value" value="3150000" oninput="validateInput(this)" onblur="updateSlider('propertyValue', this)" onkeypress="if(event.key === 'Enter') updateSlider('propertyValue', this)"></div>
                         </div>
                     </div>
                     <div class="slider-container">
@@ -556,8 +556,8 @@
                     <div class="slider-container">
                         <div class="slider-label">Formueskatt bunnfradrag (kr)</div>
                         <div class="slider-input-container">
-                            <input type="range" min="0" max="5000000" value="1760000" step="10000" class="slider" id="wealthTaxThreshold">
-                            <div class="value"><input type="text" id="wealthTaxThreshold-value" value="1 760 000" oninput="validateInput(this)" onblur="updateSlider('wealthTaxThreshold', this)" onkeypress="if(event.key === 'Enter') updateSlider('wealthTaxThreshold', this)"></div>
+                            <input type="range" min="0" max="5000000" value="1900000" step="10000" class="slider" id="wealthTaxThreshold">
+                            <div class="value"><input type="text" id="wealthTaxThreshold-value" value="1 900 000" oninput="validateInput(this)" onblur="updateSlider('wealthTaxThreshold', this)" onkeypress="if(event.key === 'Enter') updateSlider('wealthTaxThreshold', this)"></div>
                         </div>
                     </div>
                     <div class="slider-container">
@@ -570,8 +570,8 @@
                     <div class="slider-container">
                         <div class="slider-label">Personfradrag (kr)</div>
                         <div class="slider-input-container">
-                            <input type="range" min="0" max="200000" value="108550" step="1000" class="slider" id="personalAllowance">
-                            <div class="value"><input type="text" id="personalAllowance-value" value="108 550" oninput="validateInput(this)" onblur="updateSlider('personalAllowance', this)" onkeypress="if(event.key === 'Enter') updateSlider('personalAllowance', this)"></div>
+                            <input type="range" min="0" max="200000" value="114540" step="1000" class="slider" id="personalAllowance">
+                            <div class="value"><input type="text" id="personalAllowance-value" value="114540" oninput="validateInput(this)" onblur="updateSlider('personalAllowance', this)" onkeypress="if(event.key === 'Enter') updateSlider('personalAllowance', this)"></div>
                         </div>
                     </div>
                     <button onclick="toggleFollowInflationPersonalAllowance()" class="toggle-button" id="toggleFollowInflationButton" style="margin-top: 8px;">
