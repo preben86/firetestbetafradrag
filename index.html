@@ -812,6 +812,15 @@ function toggleFollowInflationPersonalAllowance() {
         ? 'Deaktiver inflasjonsjustering av personfradrag' 
         : 'Aktiver inflasjonsjustering av personfradrag';
     toggleButton.classList.toggle('active', followInflationPersonalAllowance);
+
+if (followInflationPersonalAllowance && !showExtraColumns) {
+    showExtraColumns = true;
+    document.querySelectorAll('.extra-column').forEach(col => col.classList.add('show'));
+    const toggleButton = document.getElementById('toggleColumnsButton');
+    toggleButton.innerText = 'Deaktiver ekstra kolonner';
+    toggleButton.classList.add('active');
+}
+    
     calculateFIRE();
 }
 
@@ -1181,6 +1190,7 @@ function toggleFollowInflationPersonalAllowance() {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
                 // Inflasjonsjustering av personfradrag
                    if (followInflationPersonalAllowance) {
+                       const fullPersonalAllowance = currentPersonalAllowance;
                     currentPersonalAllowance = Math.round(params.personalAllowance * Math.pow(1 + params.inflationRate, year));
                     }
                 let netWithdrawal = Math.round(currentInitialNetWithdrawal * inflationFactor);
@@ -1278,7 +1288,7 @@ function toggleFollowInflationPersonalAllowance() {
                         <td class="px-6 py-4 text-base">${formatNumber(netWithdrawal)}</td>
                         <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(withdrawalTax)}</td>
                         <td class="px-6 py-4 text-base">${formatNumber(wealthTax)}</td>
-                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(utilizedAllowance)}</td>
+                        <td class="px-6 py-4 text-base extra-column ${showExtraColumns ? 'show' : ''}">${formatNumber(fullPersonalAllowance)}<br><small>(utnyttet: ${formatNumber(utilizedAllowance)})</small></td>
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(pensionNetWithdrawal)}</td>
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(pensionValue)}</td>
                         <td class="px-6 py-4 text-base pension-column ${showPension ? 'show' : ''}">${formatNumber(folketrygdNetWithdrawal)}</td>
@@ -1305,7 +1315,7 @@ function toggleFollowInflationPersonalAllowance() {
                 <th class="px-6 py-3 text-base font-medium">Netto uttak</th>
                 <th class="px-6 py-3 text-base font-medium extra-column ${showExtraColumns ? 'show' : ''}">Uttaksskatt</th>
                 <th class="px-6 py-3 text-base font-medium">Formueskatt</th>
-                <th class="px-6 py-3 text-base font-medium extra-column ${showExtraColumns ? 'show' : ''}">Personfradrag</th>
+                <th class="px-6 py-3 text-base font-medium extra-column ${showExtraColumns ? 'show' : ''}">Personfradrag (justert)</th>
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Tjenestepensjon (netto, kr)</th>
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Tjenestepensjon beholdning (kr)</th>
                 <th class="px-6 py-3 text-base font-medium pension-column ${showPension ? 'show' : ''}">Folketrygd pensjon (netto, kr)</th>
