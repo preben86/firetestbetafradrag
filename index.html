@@ -574,8 +574,16 @@
                             <div class="value"><input type="text" id="personalAllowance-value" value="114540" oninput="validateInput(this)" onblur="updateSlider('personalAllowance', this)" onkeypress="if(event.key === 'Enter') updateSlider('personalAllowance', this)"></div>
                         </div>
                     </div>
+                    <div class="slider-container">
+                        <div class="slider-label">Personfradrag årlig økning (%)</div>
+                        <div class="slider-input-container">
+                            <input type="range" min="0" max="10" value="2.5" step="0.1" class="slider" id="personalAllowanceIncrease">
+                            <div class="value"><input type="text" id="personalAllowanceIncrease-value" value="2,5" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('personalAllowanceIncrease', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('personalAllowanceIncrease', this)"></div>
+                        </div>
+                        <div class="slider-subtext">Brukes som årlig økningsrate for personfradraget når inflasjonsjustering nedenfor er aktivert, i stedet for den generelle inflasjonsraten.</div>
+                    </div>
                     <button onclick="toggleFollowInflationPersonalAllowance()" class="toggle-button" id="toggleFollowInflationButton" style="margin-top: 8px;">
-                                        Aktiver inflasjonsjustering av personfradrag
+                                        Aktiver årlig økning av personfradrag
                         </button>
                 </div>
             </div>
@@ -594,7 +602,7 @@
                             <li><strong>Resultater:</strong> Tabellen viser årlig utvikling av fondsverdien, pensjonsbeholdning, uttak, skatter og skattefritt innskudd. Meldinger øverst indikerer varighet, initialt uttak og maksimalt uttak for 30 år.</li>
                             <li><strong>Ekstra kolonner:</strong> Under avanserte innstillinger kan du vise flere detaljer i tabellen, som uttaksskatt, personfradrag (det faktiske beløpet) og brukt personfradrag.</li>
                             <li><strong>Personfradrag:</strong> Personfradraget kan nedjusteres nederst under avanserte innstillinger for å simulere annen skattbar inntekt.</li>
-                            <li><strong>Inflasjonsjustering av personfradrag:</strong> Når "Aktiver inflasjonsjustering av personfradrag" er aktivert, øker personfradraget år for år med valgt inflasjonsrate. Alle beregninger av skattefritt uttak, skattesparing og skattefritt innskudd bruker da det inflasjonsjusterte personfradraget for hvert enkelt år, ikke det faste utgangsbeløpet. Den nye kolonnen "Personfradrag (kr)" viser dette beløpet år for år.</li>
+                            <li><strong>Årlig økning av personfradrag:</strong> Slideren "Personfradrag årlig økning (%)" under Personfradrag (kr) angir hvor mye personfradraget skal øke per år. Når "Aktiver årlig økning av personfradrag" er aktivert, økes personfradraget år for år med denne raten (uavhengig av den generelle inflasjonsraten). Alle beregninger av skattefritt uttak, skattesparing og skattefritt innskudd bruker da det justerte personfradraget for hvert enkelt år, ikke det faste utgangsbeløpet. Den nye kolonnen "Personfradrag (kr)" viser dette beløpet år for år.</li>
                             <li><strong>Inflasjonsjustering (generelt):</strong> Boligverdi er ikke inflasjonsjustert over tid i kalkulasjonen. Boligverdi vil mest sannsynlig øke, og dermed øke formue & formueskatt.</li>
                             <li><strong>Privat pensjonsoppsparing:</strong> Pensjonsoppsparingen vokser med forventet avkastning pensjon frem til pensjonsalder (mellom 62 og 75), hvoretter netto uttak starter og fortsetter til minst 80 år. Uttak skattlegges med 22%.</li>
                             <li><strong>Folketrygd pensjon:</strong> Forventet pensjon fra folketrygd utbetales fra valgt pensjonsalder for folketrygd og reduserer netto uttak fra fondet. Beløpet er justert med forventet årlig økning frem til uttak og med inflasjon etterpå.</li>
@@ -637,7 +645,7 @@
                             <tr>
                                 <td>Personfradrag(t)</td>
                                 <td>Personfradragsbeløpet som faktisk brukes i beregningen for år t.</td>
-                                <td>Hvis inflasjonsjustering AV: Personfradrag(t) = Initialt personfradrag (konstant)<br>Hvis inflasjonsjustering PÅ: Personfradrag(t) = Initialt personfradrag × (1 + Inflasjon)<sup>t</sup></td>
+                                <td>Hvis årlig økning AV: Personfradrag(t) = Initialt personfradrag (konstant)<br>Hvis årlig økning PÅ: Personfradrag(t) = Initialt personfradrag × (1 + Personfradrag årlig økning)<sup>t</sup></td>
                             </tr>
                             <tr>
                                 <td>Formueskatt</td>
@@ -717,6 +725,7 @@
             wealthTaxThreshold: document.getElementById('wealthTaxThreshold'),
             thresholdIncrease: document.getElementById('thresholdIncrease'),
             personalAllowance: document.getElementById('personalAllowance'),
+            personalAllowanceIncrease: document.getElementById('personalAllowanceIncrease'),
             portfolioWithdrawalYear: document.getElementById('portfolioWithdrawalYear'),
             birthYear: document.getElementById('birthYear'),
             retirementAge: document.getElementById('retirementAge'),
@@ -749,6 +758,7 @@
             wealthTaxThreshold: document.getElementById('wealthTaxThreshold-value'),
             thresholdIncrease: document.getElementById('thresholdIncrease-value'),
             personalAllowance: document.getElementById('personalAllowance-value'),
+            personalAllowanceIncrease: document.getElementById('personalAllowanceIncrease-value'),
             portfolioWithdrawalYear: document.getElementById('portfolioWithdrawalYear-value'),
             birthYear: document.getElementById('birthYear-value'),
             retirementAge: document.getElementById('retirementAge-value'),
@@ -815,8 +825,8 @@
             followInflationPersonalAllowance = !followInflationPersonalAllowance;
             const toggleButton = document.getElementById('toggleFollowInflationButton');
             toggleButton.innerText = followInflationPersonalAllowance
-                ? 'Deaktiver inflasjonsjustering av personfradrag'
-                : 'Aktiver inflasjonsjustering av personfradrag';
+                ? 'Deaktiver årlig økning av personfradrag'
+                : 'Aktiver årlig økning av personfradrag';
             toggleButton.classList.toggle('active', followInflationPersonalAllowance);
             calculateFIRE();
         }
@@ -869,7 +879,7 @@
         function formatValue(value, id) {
             if (['grossValue', 'taxFreeDeposit', 'monthlyNetWithdrawal', 'propertyValue', 'debt', 'wealthTaxThreshold', 'personalAllowance', 'privatePension', 'portfolioWithdrawalYear', 'birthYear', 'retirementAge', 'folketrygdAge', 'folketrygdPension', 'inheritanceYear', 'inheritanceTaxFree', 'lowWithdrawalYears', 'lowMonthlyNetWithdrawal'].includes(id)) {
                 return formatNumber(Math.round(value));
-            } else if (['withdrawalRate', 'returnRate', 'inflationRate', 'wealthTaxRate', 'shieldingRate', 'stockWithdrawalTax', 'fundDiscount', 'propertyDiscount', 'thresholdIncrease', 'pensionReturnRate', 'folketrygdIncrease', 'folketrygdTaxRate'].includes(id)) {
+            } else if (['withdrawalRate', 'returnRate', 'inflationRate', 'wealthTaxRate', 'shieldingRate', 'stockWithdrawalTax', 'fundDiscount', 'propertyDiscount', 'thresholdIncrease', 'pensionReturnRate', 'folketrygdIncrease', 'folketrygdTaxRate', 'personalAllowanceIncrease'].includes(id)) {
                 return value.toFixed(2).replace('.', ',');
             }
             return value.toString();
@@ -984,12 +994,13 @@
         }
         /**
          * Beregner personfradraget som skal gjelde for et gitt år i simuleringen (0-indeksert fra startåret).
-         * Hvis inflasjonsjustering er aktivert, økes personfradraget år for år med inflasjonsraten.
-         * Hvis ikke, forblir personfradraget konstant og likt initialverdien.
+         * Hvis årlig økning er aktivert, økes personfradraget år for år med den egendefinerte
+         * personfradrag-økningsraten (personalAllowanceIncreaseRate), IKKE den generelle inflasjonsraten.
+         * Hvis ikke aktivert, forblir personfradraget konstant og likt initialverdien.
          */
-        function getPersonalAllowanceForYear(initialPersonalAllowance, inflationRate, year, followInflation) {
-            if (followInflation) {
-                return Math.round(initialPersonalAllowance * Math.pow(1 + inflationRate, year));
+        function getPersonalAllowanceForYear(initialPersonalAllowance, personalAllowanceIncreaseRate, year, followIncrease) {
+            if (followIncrease) {
+                return Math.round(initialPersonalAllowance * Math.pow(1 + personalAllowanceIncreaseRate, year));
             }
             return initialPersonalAllowance;
         }
@@ -1015,6 +1026,7 @@
             let { taxFreeDeposit, grossValue, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
             const initialPersonalAllowance = params.personalAllowance || 108550;
             const followInflation = params.followInflationPersonalAllowance || false;
+            const personalAllowanceIncreaseRate = params.personalAllowanceIncreaseRate || 0;
             let currentPersonalAllowance = initialPersonalAllowance;
             let initialTaxFreeDeposit = taxFreeDeposit;
             let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
@@ -1031,7 +1043,7 @@
             const currentYear = 2025;
             for (let year = startYear; year < startYear + maxYears; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
-                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, params.inflationRate, year, followInflation);
+                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, personalAllowanceIncreaseRate, year, followInflation);
                 let currentNetWithdrawal = Math.round(netWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
@@ -1144,6 +1156,7 @@
                 wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
                 thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
                 personalAllowance: parseNumber(values.personalAllowance.value),
+                personalAllowanceIncreaseRate: parseNumber(values.personalAllowanceIncrease.value) / 100,
                 followInflationPersonalAllowance: followInflationPersonalAllowance,
                 portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
                 birthYear: parseNumber(values.birthYear.value),
@@ -1196,7 +1209,7 @@
                 // Personfradrag(t): inflasjonsjusteres år for år hvis aktivert, ellers konstant.
                 // Alle nedstrøms beregninger (skattefritt uttak, skattesparing, ASK-optimalisering)
                 // bruker currentPersonalAllowance for dette spesifikke året - ikke den faste initialverdien.
-                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, params.inflationRate, year, followInflationPersonalAllowance);
+                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, params.personalAllowanceIncreaseRate, year, followInflationPersonalAllowance);
                 let netWithdrawal = Math.round(currentInitialNetWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
@@ -1366,6 +1379,7 @@
                     wealthTaxThreshold: parseNumber(values.wealthTaxThreshold.value),
                     thresholdIncrease: parseNumber(values.thresholdIncrease.value) / 100,
                     personalAllowance: parseNumber(values.personalAllowance.value),
+                    personalAllowanceIncreaseRate: parseNumber(values.personalAllowanceIncrease.value) / 100,
                     portfolioWithdrawalYear: parseNumber(values.portfolioWithdrawalYear.value),
                     birthYear: parseNumber(values.birthYear.value),
                     retirementAge: parseNumber(values.retirementAge.value),
