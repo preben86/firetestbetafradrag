@@ -397,8 +397,8 @@
                             <div class="value"><input type="text" id="birthYear-value" value="1986" oninput="validateInput(this)" onblur="updateSlider('birthYear', this)" onkeypress="if(event.key === 'Enter') updateSlider('birthYear', this)"></div>
                         </div>
                     </div>
-                    <button onclick="togglePensionSettings()" class="toggle-button" id="togglePensionButton">Aktiver pensjon</button>
-                    <div id="pensionSettings" class="hidden">
+                    <button onclick="togglePensionSettings()" class="toggle-button active" id="togglePensionButton">Deaktiver pensjon</button>
+                    <div id="pensionSettings">
                         <div class="slider-container">
                             <div class="slider-label">Pensjonsalder - folketrygd</div>
                             <div class="slider-input-container">
@@ -449,10 +449,10 @@
                                 <div class="value"><input type="text" id="pensionReturnRate-value" value="6" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('pensionReturnRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('pensionReturnRate', this)"></div>
                             </div>
                         </div>
-                        <button onclick="togglePensionReturnAfterWithdrawal()" class="toggle-button" id="togglePensionReturnAfterButton">Aktiver avkastning etter uttak</button>
+                        <button onclick="togglePensionReturnAfterWithdrawal()" class="toggle-button active" id="togglePensionReturnAfterButton">Deaktiver avkastning etter uttak</button>
                     </div>
-                    <button onclick="toggleInheritanceSettings()" class="toggle-button" id="toggleInheritanceButton">Aktiver arv</button>
-                    <div id="inheritanceSettings" class="hidden">
+                    <button onclick="toggleInheritanceSettings()" class="toggle-button active" id="toggleInheritanceButton">Deaktiver arv</button>
+                    <div id="inheritanceSettings">
                         <div class="slider-subtext">Forventede fremtidige arvemottak basert på antatt arv</div>
                         <div class="slider-container">
                             <div class="slider-label">Arveår</div>
@@ -470,7 +470,7 @@
                         </div>
                     </div>
                     <button onclick="toggleExtraColumns()" class="toggle-button" id="toggleColumnsButton">Aktiver ekstra kolonner</button>
-                    <button onclick="toggleAskOptimization()" class="toggle-button" id="toggleAskButton">Aktiver ASK-optimalisering</button>
+                    <button onclick="toggleAskOptimization()" class="toggle-button active" id="toggleAskButton">Deaktiver ASK-optimalisering</button>
                     <button onclick="toggleVariableWithdrawal()" class="toggle-button" id="toggleVariableButton">Aktiver variabel uttak</button>
                     <div id="variableWithdrawalSettings" class="hidden">
                         <div class="slider-subtext">Definer et lavere uttak de første årene for å maksimere avkastning, og beregn automatisk høyere uttak etterpå for å vare resten av perioden.</div>
@@ -528,8 +528,8 @@
                     <div class="slider-container">
                         <div class="slider-label">Skjermingsrente (%)</div>
                         <div class="slider-input-container">
-                            <input type="range" min="0" max="5" value="2.4" step="0.1" class="slider" id="shieldingRate">
-                            <div class="value"><input type="text" id="shieldingRate-value" value="2,4" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('shieldingRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('shieldingRate', this)"></div>
+                            <input type="range" min="0" max="5" value="3" step="0.1" class="slider" id="shieldingRate">
+                            <div class="value"><input type="text" id="shieldingRate-value" value="3,0" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('shieldingRate', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('shieldingRate', this)"></div>
                         </div>
                     </div>
                     <div class="slider-container">
@@ -577,12 +577,12 @@
                     <div class="slider-container">
                         <div class="slider-label">Personfradrag årlig økning (%)</div>
                         <div class="slider-input-container">
-                            <input type="range" min="0" max="10" value="2.5" step="0.1" class="slider" id="personalAllowanceIncrease">
-                            <div class="value"><input type="text" id="personalAllowanceIncrease-value" value="2,5" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('personalAllowanceIncrease', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('personalAllowanceIncrease', this)"></div>
+                            <input type="range" min="0" max="10" value="3" step="0.1" class="slider" id="personalAllowanceIncrease">
+                            <div class="value"><input type="text" id="personalAllowanceIncrease-value" value="3,0" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('personalAllowanceIncrease', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('personalAllowanceIncrease', this)"></div>
                         </div>
                     </div>
-                    <button onclick="toggleFollowInflationPersonalAllowance()" class="toggle-button" id="toggleFollowInflationButton" style="margin-top: 8px;">
-                                        Aktiver årlig økning av personfradrag
+                    <button onclick="toggleFollowInflationPersonalAllowance()" class="toggle-button active" id="toggleFollowInflationButton" style="margin-top: 8px;">
+                                        Deaktiver årlig økning av personfradrag
                         </button>
                 </div>
             </div>
@@ -700,12 +700,12 @@
     <script>
         let showExtraColumns = false;
         let showInfo = false;
-        let showPension = false;
-        let showInheritance = false;
-        let showPensionReturnAfterWithdrawal = false;
-        let showAskOptimization = false;
+        let showPension = true;
+        let showInheritance = true;
+        let showPensionReturnAfterWithdrawal = true;
+        let showAskOptimization = true;
         let showVariableWithdrawal = false;
-        let followInflationPersonalAllowance = false;
+        let followInflationPersonalAllowance = true;
         const sliders = {
             grossValue: document.getElementById('grossValue'),
             taxFreeDeposit: document.getElementById('taxFreeDeposit'),
