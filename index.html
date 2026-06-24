@@ -580,7 +580,6 @@
                             <input type="range" min="0" max="10" value="2.5" step="0.1" class="slider" id="personalAllowanceIncrease">
                             <div class="value"><input type="text" id="personalAllowanceIncrease-value" value="2,5" oninput="validateInputDecimal(this)" onblur="updateSliderDecimal('personalAllowanceIncrease', this)" onkeypress="if(event.key === 'Enter') updateSliderDecimal('personalAllowanceIncrease', this)"></div>
                         </div>
-                     
                     </div>
                     <button onclick="toggleFollowInflationPersonalAllowance()" class="toggle-button" id="toggleFollowInflationButton" style="margin-top: 8px;">
                                         Aktiver årlig økning av personfradrag
@@ -602,7 +601,7 @@
                             <li><strong>Resultater:</strong> Tabellen viser årlig utvikling av fondsverdien, pensjonsbeholdning, uttak, skatter og skattefritt innskudd. Meldinger øverst indikerer varighet, initialt uttak og maksimalt uttak for 30 år.</li>
                             <li><strong>Ekstra kolonner:</strong> Under avanserte innstillinger kan du vise flere detaljer i tabellen, som uttaksskatt, personfradrag (det faktiske beløpet) og brukt personfradrag.</li>
                             <li><strong>Personfradrag:</strong> Personfradraget kan nedjusteres nederst under avanserte innstillinger for å simulere annen skattbar inntekt.</li>
-                            <li><strong>Årlig økning av personfradrag:</strong> Slideren "Personfradrag årlig økning (%)" under Personfradrag (kr) angir hvor mye personfradraget skal øke per år. Når "Aktiver årlig økning av personfradrag" er aktivert, økes personfradraget år for år med denne raten (uavhengig av den generelle inflasjonsraten). Alle beregninger av skattefritt uttak, skattesparing og skattefritt innskudd bruker da det justerte personfradraget for hvert enkelt år, ikke det faste utgangsbeløpet. Den nye kolonnen "Personfradrag (kr)" viser dette beløpet år for år.</li>
+                            <li><strong>Årlig økning av personfradrag:</strong> Slideren "Personfradrag årlig økning (%)" under Personfradrag (kr) angir hvor mye personfradraget skal øke per år. Når "Aktiver årlig økning av personfradrag" er aktivert, økes personfradraget år for år med denne raten (uavhengig av den generelle inflasjonsraten). Hvis Porteføljeuttak startår ligger frem i tid (f.eks. 2028 når dagens år er 2026), justeres personfradraget automatisk opp for årene fram til startåret også, slik at det ikke uriktig starter på dagens beløp – på samme måte som folketrygd-pensjonen justeres frem til uttaksåret. Alle beregninger av skattefritt uttak, skattesparing og skattefritt innskudd bruker da det justerte personfradraget for hvert enkelt år, ikke det faste utgangsbeløpet. Den nye kolonnen "Personfradrag (kr)" viser dette beløpet år for år.</li>
                             <li><strong>Inflasjonsjustering (generelt):</strong> Boligverdi er ikke inflasjonsjustert over tid i kalkulasjonen. Boligverdi vil mest sannsynlig øke, og dermed øke formue & formueskatt.</li>
                             <li><strong>Privat pensjonsoppsparing:</strong> Pensjonsoppsparingen vokser med forventet avkastning pensjon frem til pensjonsalder (mellom 62 og 75), hvoretter netto uttak starter og fortsetter til minst 80 år. Uttak skattlegges med 22%.</li>
                             <li><strong>Folketrygd pensjon:</strong> Forventet pensjon fra folketrygd utbetales fra valgt pensjonsalder for folketrygd og reduserer netto uttak fra fondet. Beløpet er justert med forventet årlig økning frem til uttak og med inflasjon etterpå.</li>
@@ -644,8 +643,8 @@
                             </tr>
                             <tr>
                                 <td>Personfradrag(t)</td>
-                                <td>Personfradragsbeløpet som faktisk brukes i beregningen for år t.</td>
-                                <td>Hvis årlig økning AV: Personfradrag(t) = Initialt personfradrag (konstant)<br>Hvis årlig økning PÅ: Personfradrag(t) = Initialt personfradrag × (1 + Personfradrag årlig økning)<sup>t</sup></td>
+                                <td>Personfradragsbeløpet som faktisk brukes i beregningen for år t. Hvis Porteføljeuttak startår ligger frem i tid, justeres beløpet også opp for årene fram til startåret.</td>
+                                <td>Hvis årlig økning AV: Personfradrag(t) = Initialt personfradrag (konstant)<br>Hvis årlig økning PÅ: Personfradrag(t) = Initialt personfradrag × (1 + Personfradrag årlig økning)<sup>(StartårOffset + t)</sup><br>Hvor StartårOffset = max(0, Porteføljeuttak startår - dagens år)</td>
                             </tr>
                             <tr>
                                 <td>Formueskatt</td>
@@ -996,11 +995,19 @@
          * Beregner personfradraget som skal gjelde for et gitt år i simuleringen (0-indeksert fra startåret).
          * Hvis årlig økning er aktivert, økes personfradraget år for år med den egendefinerte
          * personfradrag-økningsraten (personalAllowanceIncreaseRate), IKKE den generelle inflasjonsraten.
-         * Hvis ikke aktivert, forblir personfradraget konstant og likt initialverdien.
+         *
+         * VIKTIG: Hvis Porteføljeuttak startår ligger frem i tid (f.eks. 2028 når dagens år er 2026),
+         * må personfradraget allerede være justert opp for de årene fra i dag og frem til startåret,
+         * på samme måte som folketrygd-pensjonen justeres frem til uttaksåret. Derfor legges
+         * startYearOffset (= portfolioWithdrawalYear - dagens år) til simuleringsåret i eksponenten,
+         * slik at personfradraget ikke uriktig starter på dagens beløp selv når uttaket starter senere.
+         *
+         * Hvis ikke aktivert, forblir personfradraget konstant og likt initialverdien uansett startår.
          */
-        function getPersonalAllowanceForYear(initialPersonalAllowance, personalAllowanceIncreaseRate, year, followIncrease) {
+        function getPersonalAllowanceForYear(initialPersonalAllowance, personalAllowanceIncreaseRate, year, followIncrease, startYearOffset = 0) {
             if (followIncrease) {
-                return Math.round(initialPersonalAllowance * Math.pow(1 + personalAllowanceIncreaseRate, year));
+                const totalYears = Math.max(0, startYearOffset) + year;
+                return Math.round(initialPersonalAllowance * Math.pow(1 + personalAllowanceIncreaseRate, totalYears));
             }
             return initialPersonalAllowance;
         }
@@ -1040,10 +1047,11 @@
             let previousNetWithdrawal = 0, previousWithdrawalTax = 0, previousWealthTax = 0, previousWithdrawalFromTaxFree = 0;
             let previousGrossWithdrawal = 0;
             let previousSurplus = 0;
-            const currentYear = 2025;
+            const currentYear = 2026;
+            const startYearOffset = Math.max(0, portfolioWithdrawalYear - currentYear);
             for (let year = startYear; year < startYear + maxYears; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
-                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, personalAllowanceIncreaseRate, year, followInflation);
+                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, personalAllowanceIncreaseRate, year, followInflation, startYearOffset);
                 let currentNetWithdrawal = Math.round(netWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
@@ -1169,8 +1177,9 @@
                 inheritanceYear: parseNumber(values.inheritanceYear.value),
                 inheritanceTaxFree: parseNumber(values.inheritanceTaxFree.value)
             };
-            const currentYear = 2025;
+            const currentYear = 2026;
             let { taxFreeDeposit, grossValue, monthlyNetWithdrawal, years, portfolioWithdrawalYear, birthYear, retirementAge, folketrygdAge, privatePension, folketrygdIncrease, inheritanceYear, inheritanceTaxFree } = params;
+            const startYearOffset = Math.max(0, portfolioWithdrawalYear - currentYear);
             let initialTaxFreeDeposit = taxFreeDeposit;
             let previousDisplayedTaxFreeDeposit = initialTaxFreeDeposit;
             let displayedTaxFreeDeposit = initialTaxFreeDeposit;
@@ -1206,10 +1215,11 @@
             }
             for (let year = yearOffset; year <= years; year++) {
                 const inflationFactor = Math.pow(1 + params.inflationRate, year);
-                // Personfradrag(t): inflasjonsjusteres år for år hvis aktivert, ellers konstant.
+                // Personfradrag(t): økes år for år hvis aktivert (med egen rate, justert for at
+                // Porteføljeuttak startår kan ligge frem i tid), ellers konstant.
                 // Alle nedstrøms beregninger (skattefritt uttak, skattesparing, ASK-optimalisering)
                 // bruker currentPersonalAllowance for dette spesifikke året - ikke den faste initialverdien.
-                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, params.personalAllowanceIncreaseRate, year, followInflationPersonalAllowance);
+                currentPersonalAllowance = getPersonalAllowanceForYear(initialPersonalAllowance, params.personalAllowanceIncreaseRate, year, followInflationPersonalAllowance, startYearOffset);
                 let netWithdrawal = Math.round(currentInitialNetWithdrawal * inflationFactor);
                 let pensionNetWithdrawal = 0, folketrygdNetWithdrawal = 0;
                 if (showPension && (portfolioWithdrawalYear + year) >= retirementYear && pensionValue > 0) {
